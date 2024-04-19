@@ -9,7 +9,7 @@ const Sidemenu = () => {
     <div className="flex flex-col items-center justify-between w-[14rem] h-full shrink-0 gap-2">
       <div className="w-full flex flex-col items-center justify-start gap-1">
         <SidemenuItem label="Screener" icon={<Monitor className="max-w-full" />} url="/" />
-        <SidemenuItem label="Saved trades" icon={<CandlestickChartIcon className="max-w-full" />} url="/my-trades" />
+        <SidemenuItem label="My trades" icon={<CandlestickChartIcon className="max-w-full" />} url="/my-trades" />
       </div>
       <div className="w-full flex items-start">
         <ModeToggle />

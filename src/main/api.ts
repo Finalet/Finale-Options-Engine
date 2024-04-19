@@ -4,12 +4,11 @@ import GetCallCreditSpreads, { CallCreditSpreadScreenerResults, ScreenerStatisti
 import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
 import { resolveHtmlPath } from './util';
 import { CallCreditSpread } from './CallCreditSpreads/Data/Types';
+import { DataManager } from './DataStorage/DataManager';
+import { CallCreditSpreadTrade } from './Trades/Trade';
+import { nanoid } from 'nanoid';
 
 ConfigurePolygon();
-
-export class AppData {
-  static spreads: CallCreditSpread[] = [];
-}
 
 export interface GetCallCreditSpreadArgs {
   ticker: string;
@@ -21,7 +20,7 @@ ipcMain.handle('getCallCreditSpreads', async (event, { ticker, expiration, param
   try {
     console.log(`[${ticker}] Getting call credit spreads`);
     const results = await GetCallCreditSpreads(ticker, expiration, params);
-    AppData.spreads.push(...results.spreads);
+    DataManager.cachedSpreads.push(...results.spreads);
     return results;
   } catch (error: any) {
     console.error(`[${ticker}] Failed to build call credit spread. Error: ${error}`);
@@ -39,12 +38,12 @@ export interface GetCachedCallCreditSpreadArgs {
 }
 
 ipcMain.handle('getCachedCallCreditSpread', async (event, { ticker, expiration, shortStrike, longStrike }: GetCachedCallCreditSpreadArgs): Promise<CallCreditSpread | undefined> => {
-  const spread = AppData.spreads.find((spread) => spread.underlying.ticker === ticker && spread.shortLeg.strike === shortStrike && spread.longLeg.strike === longStrike);
+  const spread = DataManager.cachedSpreads.find((spread) => spread.underlying.ticker === ticker && spread.shortLeg.strike === shortStrike && spread.longLeg.strike === longStrike);
   return spread;
 });
 
 ipcMain.on('clearCachedSpreads', () => {
-  AppData.spreads = [];
+  DataManager.cachedSpreads = [];
 });
 
 ipcMain.on('open-window', (event, url: string) => {
@@ -85,4 +84,24 @@ ipcMain.on('open-window', (event, url: string) => {
       newWindow.show();
     }
   });
+});
+
+export interface ExecuteTradeArgs {
+  spread: CallCreditSpread;
+}
+
+ipcMain.handle('executeTrade', async (event, { spread }: ExecuteTradeArgs) => {
+  const trade: CallCreditSpreadTrade = {
+    id: nanoid(),
+    type: 'call-credit-spread',
+    dateOpened: new Date(),
+    underlying: spread.underlying,
+    spreadAtOpen: spread,
+  };
+  DataManager.SaveNewTrade(trade);
+  return spread;
+});
+
+ipcMain.handle('loadTrades', async () => {
+  return DataManager.LoadTrades();
 });

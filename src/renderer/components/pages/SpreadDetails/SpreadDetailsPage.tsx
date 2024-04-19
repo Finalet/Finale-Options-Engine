@@ -8,7 +8,8 @@ import dateAndTime from 'date-and-time';
 import PriceChart, { ChartTimeFrame } from './PriceChart';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { Button } from '../../shadcn/ui/button';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { toast } from 'sonner';
 
 const SpreadDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -38,9 +39,12 @@ const SpreadDetailsPage = () => {
         <StockDetails stock={spread.underlying} />
         <SpreadDetails spread={spread} />
       </div>
-      <div className="flex flex-col items-start justify-start gap-3">
-        <OptionDetails title="Short leg" option={spread.shortLeg} />
-        <OptionDetails title="Long leg" option={spread.longLeg} />
+      <div className="h-full flex flex-col items-end justify-between gap-3">
+        <div className="flex flex-col items-start justify-start gap-3">
+          <OptionDetails title="Short leg" option={spread.shortLeg} />
+          <OptionDetails title="Long leg" option={spread.longLeg} />
+        </div>
+        <Actions spread={spread} />
       </div>
     </div>
   );
@@ -226,6 +230,23 @@ const PriceCharts = ({ prices, setPriceChange, onHover, onHoverEnd, className }:
           </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+    </div>
+  );
+};
+
+const Actions = ({ spread }: { spread: CallCreditSpread }) => {
+  async function ExecuteTrade() {
+    const promise = window.api.executeTrade({ spread });
+    toast.promise(promise, {
+      loading: 'Executing trade...',
+      success: (spread: CallCreditSpread) => `${spread.underlying.ticker} $${spread.shortLeg.strike} / $${spread.longLeg.strike} Call ${dateAndTime.format(spread.expiration, 'M/D')} executed.`,
+      error: 'Failed to execute trade',
+    });
+  }
+
+  return (
+    <div className="p-3">
+      <Button onClick={ExecuteTrade}>Execute trade</Button>
     </div>
   );
 };
