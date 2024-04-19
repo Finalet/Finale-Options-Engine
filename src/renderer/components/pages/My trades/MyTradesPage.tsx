@@ -128,16 +128,26 @@ const columns: any = [
     id: 'return',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
-      const credit = row.original.spreadAtOpen.maxProfit;
-      const currentPrice = row.original.spreadLive?.maxProfit;
-      if (currentPrice === undefined) return <Placeholder />;
-      const currentReturn = roundTo((100 * (credit - currentPrice)) / credit, 2);
+      const currentReturn = getCurrentReturn(row.original);
+      if (currentReturn === undefined) return <Placeholder />;
       return <span className={`${currentReturn > 0 ? 'text-primary' : currentReturn === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{currentReturn}%</span>;
     },
-    sortingFn: (a, b) => (a.original.spreadLive === undefined || b.original.spreadLive === undefined ? 0 : a.original.spreadLive.returnAtExpiration - b.original.spreadLive.returnAtExpiration),
+    sortingFn: (a, b) => {
+      const aReturn = getCurrentReturn(a.original);
+      const bReturn = getCurrentReturn(b.original);
+      if (aReturn === undefined || bReturn === undefined) return 0;
+      return aReturn - bReturn;
+    },
   }),
 ];
 
 const Placeholder = () => {
   return <Skeleton className="w-10 h-5" />;
+};
+
+const getCurrentReturn = (trade: CallCreditSpreadTrade): number | undefined => {
+  const openPrice = trade.spreadAtOpen.price;
+  const currentPrice = trade.spreadLive?.price;
+  if (currentPrice === undefined) return undefined;
+  return roundTo((100 * (openPrice - currentPrice)) / openPrice, 2);
 };
