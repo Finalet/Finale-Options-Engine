@@ -30,12 +30,12 @@ export interface Stock {
   earningsDate?: Date;
   exDividendDate?: Date;
   dividendDate?: Date;
+  historicalPrices?: StockHistoricalPrice[];
   bollingerBands: {
     upperBand: number;
     middleBand: number;
     lowerBand: number;
   };
-  historicalPrices: StockHistoricalPrice[];
 }
 
 export interface StockHistoricalPrice {
@@ -49,6 +49,7 @@ export interface CallCreditSpread {
   shortLeg: Option;
   longLeg: Option;
   expiration: Date;
+  price: number;
   maxProfit: number;
   maxLoss: number;
   returnAtExpiration: number;
@@ -59,4 +60,14 @@ export interface CallCreditSpread {
     distanceToLongStrike: number;
     distanceOverBollingerBand: number;
   };
+}
+
+export interface CallCreditSpreadTrade {
+  id: string;
+  status: 'open' | 'closed';
+  underlying: Stock;
+  dateOpened: Date;
+  spreadAtOpen: CallCreditSpread;
+  spreadAtClose?: CallCreditSpread;
+  spreadLive?: CallCreditSpread;
 }

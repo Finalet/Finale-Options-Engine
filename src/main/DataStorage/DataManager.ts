@@ -1,7 +1,6 @@
 import { app } from 'electron';
-import { CallCreditSpread } from '../CallCreditSpreads/Data/Types';
+import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
 import jsonFile from 'jsonfile';
-import { CallCreditSpreadTrade } from '../Trades/Trade';
 import date from 'date-and-time';
 import fs from 'fs';
 
@@ -10,13 +9,15 @@ export class DataManager {
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
     const tradesFolderPath = DataManager.getTradesFolderPath();
+    if (!fs.existsSync(tradesFolderPath)) return [];
     const files = fs.readdirSync(tradesFolderPath);
-    const trades = Promise.all(
+    const trades = await Promise.all(
       files.map(async (file) => {
+        if (!file.endsWith('.json')) return null;
         return (await jsonFile.readFile(`${tradesFolderPath}/${file}`)) as CallCreditSpreadTrade;
       }),
     );
-    return trades;
+    return trades.filter((t) => t !== null);
   }
 
   static async SaveNewTrade(trade: CallCreditSpreadTrade) {

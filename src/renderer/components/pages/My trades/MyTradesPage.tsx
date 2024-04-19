@@ -2,9 +2,9 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { DataTable } from '../../elements/DataTable/DataTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
-import { CallCreditSpreadTrade } from '@/src/main/Trades/Trade';
 import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
 import { Badge } from '../../shadcn/ui/badge';
+import { CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
 
 const MyTradesPage = () => {
   const [trades, setTrades] = useState<CallCreditSpreadTrade[]>([]);
@@ -39,7 +39,7 @@ const columnHelper = createColumnHelper<CallCreditSpreadTrade>();
 const columns: any = [
   columnHelper.accessor((row) => row.underlying.ticker, {
     id: 'ticker',
-    header: 'ticker',
+    header: 'Ticker',
     cell: ({ row }) => {
       return <Badge>{row.original.underlying.ticker}</Badge>;
     },

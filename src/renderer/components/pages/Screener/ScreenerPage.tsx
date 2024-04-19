@@ -98,7 +98,7 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
   const getPreviewPos = (rawY: number, rawX: number): { x: number; y: number } => {
     if (!parentRef.current) return { x: rawY, y: rawX };
     const rect = parentRef.current.getBoundingClientRect();
-    const previewHeight = 415;
+    const previewHeight = 439;
     const previewWidth = 256;
     const xOffset = 50;
     const yOffset = 70;
@@ -172,9 +172,12 @@ const columns: any = [
       );
     },
   }),
-  columnHelper.accessor((row) => row.underlying.price, {
+  columnHelper.accessor((row) => row.price, {
     id: 'price',
-    header: 'Price',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Price" />,
+    cell: ({ row }) => {
+      return <span>${row.original.price}</span>;
+    },
   }),
   columnHelper.accessor((row) => row.shortLeg.greeks.delta, {
     id: 'delta',
@@ -227,6 +230,7 @@ const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }: Sprea
       <CardContent>
         <div className="w-full flex flex-col gap-1">
           <DisplayValue label="Return" percent={spread.returnAtExpiration} />
+          <DisplayValue label="Price" dollar={spread.price} />
           <DisplayValue label="Days to expiration" raw={spread.stats.daysToExpiration} />
           <Separator className="my-2" />
           <DisplayValue label="Profit / Loss" raw={`$${spread.maxProfit.toFixed(0)} / $${spread.maxLoss.toFixed(0)}`} />

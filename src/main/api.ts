@@ -3,9 +3,8 @@ import path from 'path';
 import GetCallCreditSpreads, { CallCreditSpreadScreenerResults, ScreenerStatistics, SpreadParameters } from './CallCreditSpreads/CallCreditSpreads';
 import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
 import { resolveHtmlPath } from './util';
-import { CallCreditSpread } from './CallCreditSpreads/Data/Types';
+import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
 import { DataManager } from './DataStorage/DataManager';
-import { CallCreditSpreadTrade } from './Trades/Trade';
 import { nanoid } from 'nanoid';
 
 ConfigurePolygon();
@@ -61,9 +60,9 @@ ipcMain.on('open-window', (event, url: string) => {
     width: 966,
     maxWidth: 966,
     minWidth: 966,
-    height: 740, //722,
-    maxHeight: 740, //722,
-    minHeight: 740, //722,
+    height: 762, //722,
+    maxHeight: 762, //722,
+    minHeight: 762, //722,
     resizable: false,
     icon: getAssetPath('icon.png'),
     webPreferences: {
@@ -91,11 +90,13 @@ export interface ExecuteTradeArgs {
 }
 
 ipcMain.handle('executeTrade', async (event, { spread }: ExecuteTradeArgs) => {
+  const underlying = spread.underlying;
+  underlying.historicalPrices = [];
   const trade: CallCreditSpreadTrade = {
     id: nanoid(),
-    type: 'call-credit-spread',
+    status: 'open',
     dateOpened: new Date(),
-    underlying: spread.underlying,
+    underlying: underlying,
     spreadAtOpen: spread,
   };
   DataManager.SaveNewTrade(trade);

@@ -16,7 +16,8 @@ export function BuildCallCreditSpreads(chain: OptionChain, minDistance: number, 
       if (distance < minDistance) continue;
       if (distance > maxDistance) break;
 
-      const maxProfit = 100 * (shortLeg.price - longLeg.price);
+      const price = roundTo(shortLeg.price - longLeg.price, 2);
+      const maxProfit = 100 * price;
       const maxLoss = 100 * distance - maxProfit;
 
       const distanceToShortStrike = (shortLeg.contractType === 'call' ? shortLeg.strike - chain.underlying.price : chain.underlying.price - shortLeg.strike) / chain.underlying.price;
@@ -27,6 +28,7 @@ export function BuildCallCreditSpreads(chain: OptionChain, minDistance: number, 
         underlying: chain.underlying,
         shortLeg,
         longLeg,
+        price,
         maxProfit,
         maxLoss,
         expiration: shortLeg.expiration,

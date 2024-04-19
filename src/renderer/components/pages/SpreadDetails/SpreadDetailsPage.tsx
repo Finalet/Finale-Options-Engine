@@ -96,18 +96,20 @@ const StockDetails = ({ stock }: { stock: Stock }) => {
       </div>
       <CardContent>
         <div className="w-full flex flex-col gap-1">
-          <PriceCharts
-            prices={stock.historicalPrices}
-            setPriceChange={setPriceChange}
-            onHover={(p, change) => {
-              setHighlightedPoint(p);
-              setPriceChange(change);
-            }}
-            onHoverEnd={() => {
-              setHighlightedPoint(undefined);
-              setPriceChange(undefined);
-            }}
-          />
+          {stock.historicalPrices && (
+            <PriceCharts
+              prices={stock.historicalPrices}
+              setPriceChange={setPriceChange}
+              onHover={(p, change) => {
+                setHighlightedPoint(p);
+                setPriceChange(change);
+              }}
+              onHoverEnd={() => {
+                setHighlightedPoint(undefined);
+                setPriceChange(undefined);
+              }}
+            />
+          )}
           <DisplayValue label="Next earnings" date={stock.earningsDate} />
           <DisplayValue label="Next dividend" date={stock.dividendDate} />
           <DisplayValue label="Ex dividend" date={stock.exDividendDate} />
@@ -130,6 +132,7 @@ const SpreadDetails = ({ spread }: { spread: CallCreditSpread }) => {
       <CardContent>
         <div className="w-full flex flex-col gap-1">
           <DisplayValue label="Return" percent={spread.returnAtExpiration} />
+          <DisplayValue label="Price" dollar={spread.price} />
           <DisplayValue label="Expiration" date={spread.expiration} />
           <DisplayValue label="Days to expiration" raw={spread.stats.daysToExpiration} />
           <Separator className="my-2" />
