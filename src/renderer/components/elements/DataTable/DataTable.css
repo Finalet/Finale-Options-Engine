@@ -1,0 +1,17 @@
+th:after,
+th:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+}
+
+th:before {
+  top: -1px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+th:after {
+  bottom: -1px;
+  border-bottom: 1px solid hsl(var(--border));
+}
