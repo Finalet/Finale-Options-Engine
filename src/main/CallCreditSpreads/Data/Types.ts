@@ -67,6 +67,7 @@ export interface CallCreditSpreadTrade {
   status: 'open' | 'closed';
   underlying: Stock;
   dateOpened: Date;
+  dateClosed?: Date;
   spreadAtOpen: CallCreditSpread;
   spreadAtClose?: CallCreditSpread;
   spreadLive?: CallCreditSpread;

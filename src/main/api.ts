@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
-import GetCallCreditSpreads, { CallCreditSpreadScreenerResults, ScreenerStatistics, SpreadParameters } from './CallCreditSpreads/CallCreditSpreads';
+import { GetCallCreditSpreads, CallCreditSpreadScreenerResults, ScreenerStatistics, SpreadParameters, GetCallCreditSpread } from './CallCreditSpreads/CallCreditSpreads';
 import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
 import { resolveHtmlPath } from './util';
 import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
@@ -9,13 +9,13 @@ import { nanoid } from 'nanoid';
 
 ConfigurePolygon();
 
-export interface GetCallCreditSpreadArgs {
+export interface GetCallCreditSpreadsArgs {
   ticker: string;
   expiration: Date;
   params?: SpreadParameters;
 }
 
-ipcMain.handle('getCallCreditSpreads', async (event, { ticker, expiration, params }: GetCallCreditSpreadArgs): Promise<CallCreditSpreadScreenerResults> => {
+ipcMain.handle('getCallCreditSpreads', async (event, { ticker, expiration, params }: GetCallCreditSpreadsArgs): Promise<CallCreditSpreadScreenerResults> => {
   try {
     console.log(`[${ticker}] Getting call credit spreads`);
     const results = await GetCallCreditSpreads(ticker, expiration, params);
@@ -27,6 +27,18 @@ ipcMain.handle('getCallCreditSpreads', async (event, { ticker, expiration, param
     if (error.name === 'FailedYahooValidationError') throw new Error(`[FAILED-YAHOO-VALIDATION]`);
     throw new Error(error);
   }
+});
+
+export interface GetCallCreditSpreadArgs {
+  ticker: string;
+  expiration: Date;
+  shortStrike: number;
+  longStrike: number;
+}
+
+ipcMain.handle('getCallCreditSpread', async (event, { ticker, expiration, shortStrike, longStrike }: GetCallCreditSpreadArgs): Promise<CallCreditSpread> => {
+  const spread = await GetCallCreditSpread(ticker, expiration, shortStrike, longStrike);
+  return spread;
 });
 
 export interface GetCachedCallCreditSpreadArgs {

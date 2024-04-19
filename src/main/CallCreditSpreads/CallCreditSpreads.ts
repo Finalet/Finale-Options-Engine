@@ -9,7 +9,7 @@ export interface CallCreditSpreadScreenerResults {
   statistics: ScreenerStatistics;
 }
 
-async function GetCallCreditSpreads(stock: string, expiration: Date | string, params?: SpreadParameters): Promise<CallCreditSpreadScreenerResults> {
+export async function GetCallCreditSpreads(stock: string, expiration: Date | string, params?: SpreadParameters): Promise<CallCreditSpreadScreenerResults> {
   const { minSpreadDistance, maxSpreadDistance, minDistanceToStrike, minIV, maxIV, maxDelta, minVolume, minDistanceOverBollingerBand, minDaysToEarnings, maxLegBidAskSpread, minReturn } = params ?? {};
 
   const chain = await GetCallOptionChain(stock, expiration);
@@ -62,7 +62,11 @@ async function GetCallCreditSpreads(stock: string, expiration: Date | string, pa
   };
 }
 
-export default GetCallCreditSpreads;
+export async function GetCallCreditSpread(stock: string, expiration: Date, shortStrike: number, longStrike: number): Promise<CallCreditSpread> {
+  const chain = await GetCallOptionChain(stock, expiration, [shortStrike, longStrike]);
+  const spread = BuildCallCreditSpreads(chain, longStrike - shortStrike, longStrike - shortStrike);
+  return spread[0];
+}
 
 export interface SpreadParameters {
   minSpreadDistance?: number;

@@ -1,4 +1,4 @@
-import { IRestClient, restClient } from '@polygon.io/client-js';
+import { IOptionsChainQuery, IOptionsSnapshotChain, IRestClient, restClient } from '@polygon.io/client-js';
 import { Option, OptionChain, Stock } from './Types';
 import yahooFinance from 'yahoo-finance2';
 import { CallOrPut } from 'yahoo-finance2/dist/esm/src/modules/options';
@@ -12,25 +12,43 @@ export function ConfigurePolygon() {
   polygon = restClient('Sh_nXzj6SixRgsLIOdePJoaPwoz7nzHE', undefined, { pagination: true });
 }
 
-export async function GetCallOptionChain(stock: string | Stock, expiration: Date | string, onlyOTM: boolean = true): Promise<OptionChain> {
+export async function GetCallOptionChain(stock: string | Stock, expiration: Date | string, strikes?: number[], onlyOTM?: boolean): Promise<OptionChain> {
   yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
 
   const expirationDate = typeof expiration === 'string' ? expiration : getDateOnly(expiration);
   const underlyingStock: Stock = typeof stock === 'string' ? await GetStock(stock) : stock;
   const yahooOptions = await yahooFinance.options(underlyingStock.ticker, { date: expirationDate, formatted: true });
 
-  const polygonChain = await polygon.options.snapshotOptionChain(underlyingStock.ticker, {
+  let polygonChain: IOptionsSnapshotChain[] = [];
+  const query: IOptionsChainQuery = {
     contract_type: 'call',
     sort: 'strike_price',
     order: 'asc',
     expiration_date: expirationDate,
-    'strike_price.gte': onlyOTM ? underlyingStock.price : undefined,
-  });
+  };
+  if (!strikes) {
+    const chain = await polygon.options.snapshotOptionChain(underlyingStock.ticker, {
+      ...query,
+      'strike_price.gte': onlyOTM === true ? underlyingStock.price : undefined,
+    });
+    polygonChain.push(chain);
+  } else {
+    for (const strike of strikes) {
+      const chain = await polygon.options.snapshotOptionChain(underlyingStock.ticker, {
+        ...query,
+        strike_price: strike,
+      });
+      chain.results;
+      polygonChain.push(chain);
+    }
+  }
+
+  const polygonOptionsn = polygonChain.flatMap((chain) => chain.results).filter((option) => option !== undefined);
 
   const optionChain: OptionChain = {
     underlying: underlyingStock,
     options:
-      polygonChain.results?.map((polygonOption) => {
+      polygonOptionsn.map((polygonOption) => {
         const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
         return optionFromPolygonAndYahoo(polygonOption, yahooOption, underlyingStock);
       }) ?? [],
