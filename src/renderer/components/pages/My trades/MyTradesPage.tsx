@@ -83,32 +83,37 @@ const columns: any = [
       );
     },
   }),
-  columnHelper.accessor((row) => row.underlying.price, {
-    id: 'stockPrice',
-    header: 'Stock Price',
+  columnHelper.accessor((row) => row.quantity, {
+    id: 'quantity',
+    header: 'Qty',
+    size: 70,
+  }),
+  columnHelper.accessor((row) => row.spreadAtOpen.price, {
+    id: 'openPrice',
+    header: 'Open price',
     cell: ({ row }) => {
-      return <span>${row.original.underlying.price.toFixed(2)}</span>;
+      return <span>${row.original.spreadAtOpen.price}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadAtOpen.maxProfit, {
-    id: 'Credit',
+    id: 'credit',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Credit" />,
     cell: ({ row }) => {
       return <span>${(row.original.spreadAtOpen.maxProfit * row.original.quantity).toFixed(0)}</span>;
     },
   }),
-  columnHelper.accessor((row) => row.spreadAtOpen.price, {
-    id: 'openPrice',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Open price" />,
+  columnHelper.accessor((row) => row.spreadLive?.underlying.price, {
+    id: 'liveStockPrice',
+    header: 'Stock price',
     cell: ({ row }) => {
-      return <span>${row.original.spreadAtOpen.price}</span>;
+      return row.original.spreadLive === undefined ? <Placeholder width={3} /> : <span>${row.original.spreadLive?.underlying.price.toFixed(2)}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.price, {
     id: 'livePrice',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Live price" />,
+    header: 'Live price',
     cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder />}</span>;
+      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder width={2} />}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadAtOpen.expiration, {
@@ -126,6 +131,7 @@ const columns: any = [
   }),
   columnHelper.accessor((row) => row.spreadLive?.returnAtExpiration, {
     id: 'return',
+    size: 30,
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
       const currentReturn = getCurrentReturn(row.original);
@@ -141,8 +147,15 @@ const columns: any = [
   }),
 ];
 
-const Placeholder = () => {
-  return <Skeleton className="w-10 h-5" />;
+const Placeholder = ({ dynamicWidth, width }: { dynamicWidth?: string; width?: number }) => {
+  return (
+    <Skeleton
+      style={{
+        width: `${width ?? 2.5}rem`,
+      }}
+      className="h-5"
+    />
+  );
 };
 
 const getCurrentReturn = (trade: CallCreditSpreadTrade): number | undefined => {

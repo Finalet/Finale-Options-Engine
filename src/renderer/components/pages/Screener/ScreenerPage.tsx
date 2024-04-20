@@ -166,7 +166,7 @@ const columns: any = [
     header: 'Spread',
     cell: ({ row }) => {
       return (
-        <span className="font-semibold">
+        <span className="font-semibold text-nowrap">
           {row.original.shortLeg.strike} / {row.original.longLeg.strike}
         </span>
       );
