@@ -29,7 +29,7 @@ export async function GetCallOptionChain(stock: string | Stock, expiration: Date
   if (!strikes) {
     const chain = await polygon.options.snapshotOptionChain(underlyingStock.ticker, {
       ...query,
-      'strike_price.gte': onlyOTM === true ? underlyingStock.price : undefined,
+      'strike_price.gte': onlyOTM === false ? undefined : underlyingStock.price,
     });
     polygonChain.push(chain);
   } else {

@@ -124,7 +124,7 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
         <CardTitle>Screener</CardTitle>
         <CardDescription>Results of the screener</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col h-full overflow-auto px-5 pb-5">
+      <CardContent className="flex flex-col h-full overflow-auto">
         <DataTable
           searchColumnID="ticker"
           searchPlaceholder="Search ticker"

@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { Button } from '../../shadcn/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
+import ExecuteTradePopup from './ExecuteTradePopup';
 
 const SpreadDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -238,18 +240,15 @@ const PriceCharts = ({ prices, setPriceChange, onHover, onHoverEnd, className }:
 };
 
 const Actions = ({ spread }: { spread: CallCreditSpread }) => {
-  async function ExecuteTrade() {
-    const promise = window.api.executeTrade({ spread });
-    toast.promise(promise, {
-      loading: 'Executing trade...',
-      success: (spread: CallCreditSpread) => `${spread.underlying.ticker} $${spread.shortLeg.strike} / $${spread.longLeg.strike} Call ${dateAndTime.format(spread.expiration, 'M/D')} executed.`,
-      error: 'Failed to execute trade',
-    });
-  }
-
+  const [open, setOpen] = useState<boolean>(false);
   return (
     <div className="p-3">
-      <Button onClick={ExecuteTrade}>Execute trade</Button>
+      <Dialog onOpenChange={(v) => setOpen(v)}>
+        <DialogTrigger asChild>
+          <Button>Execute trade</Button>
+        </DialogTrigger>
+        <ExecuteTradePopup spread={spread} open={open} />
+      </Dialog>
     </div>
   );
 };

@@ -15,6 +15,7 @@ import { Badge } from '../../shadcn/ui/badge';
 import { SpreadParameters } from '@/src/main/CallCreditSpreads/CallCreditSpreads';
 import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, top100Tickers } from '@/src/main/CallCreditSpreads/Data/Tickers';
 import date from 'date-and-time';
+import { Label } from '../../shadcn/ui/label';
 
 const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) => void }) => {
   const [tickers, setTickers] = useState<string[]>([]);
@@ -160,8 +161,8 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
         <CardDescription>Setup parameters for screening options</CardDescription>
       </CardHeader>
       <CardContent className="pb-6 h-full flex flex-col gap-2 overflow-auto px-0">
-        <div className="w-full flex flex-col items-start justify-between overflow-auto px-4">
-          <div className="p-2 w-full flex flex-col items-center justify-center gap-4">
+        <div className="w-full flex flex-col items-start justify-between overflow-auto px-6">
+          <div className="py-2 w-full flex flex-col items-center justify-center gap-4">
             <div className="w-full flex items-center justify-center gap-2">
               <AddTickerButton AddTickers={AddTickers} />
               {tickers.length > 5 && (
@@ -181,8 +182,10 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
               </div>
             )}
           </div>
-          <div className="p-2 w-full flex items-center justify-center gap-4 mb-4">
-            <div className="w-1/2 truncate">Expiration</div>
+          <div className="py-2 w-full flex items-center justify-center gap-4 mb-4">
+            <div className="w-1/2 truncate">
+              <Label>Expiration</Label>
+            </div>
             <DatePickerWithPresets date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
           </div>
           {processedParameters.map((parameter, index) =>
@@ -202,7 +205,7 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
               <SingleParameterInput key={index} parameter={parameter} value={getValue(parameter.id)} Remove={() => RemoveParameter(parameter)} OnValueChange={(v) => UpdateValue(parameter.id, v)} />
             ),
           )}
-          <div className={`w-full px-2 pt-4`}>
+          <div className={`w-full pt-4`}>
             <AddParameterButton excludeParameters={parameters} AddParameters={AddParameters} AddPreset={AddPreset} addedParameters={parameters} />
           </div>
         </div>
@@ -379,7 +382,9 @@ const SingleParameterInput = ({ parameter, value, OnValueChange, Remove }: { par
   return (
     <ContextMenu>
       <ContextMenuTrigger className="w-full flex items-center justify-center hover:bg-secondary p-2 rounded-lg gap-2">
-        <div className="w-full flex items-center gap-2">{parameter.name}</div>
+        <div className="w-full">
+          <Label>{parameter.name}</Label>
+        </div>
         <Input
           value={value}
           onChange={(e) => {

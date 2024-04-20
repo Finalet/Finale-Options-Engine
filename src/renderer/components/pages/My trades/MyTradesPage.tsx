@@ -41,8 +41,8 @@ const MyTradesPage = () => {
           <CardTitle>My trades</CardTitle>
           <CardDescription>List of open and closed positions.</CardDescription>
         </CardHeader>
-        <CardContent className="h-full">
-          <DataTable data={trades} columns={columns} />
+        <CardContent className="h-full overflow-auto">
+          <DataTable data={trades} columns={columns} searchColumnID="ticker" searchPlaceholder="Search ticker" />
         </CardContent>
       </Card>
     </div>
@@ -94,7 +94,7 @@ const columns: any = [
     id: 'Credit',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Credit" />,
     cell: ({ row }) => {
-      return <span>${row.original.spreadAtOpen.maxProfit.toFixed(0)}</span>;
+      return <span>${(row.original.spreadAtOpen.maxProfit * row.original.quantity).toFixed(0)}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadAtOpen.price, {
@@ -105,8 +105,8 @@ const columns: any = [
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.price, {
-    id: 'currentPrice',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Price" />,
+    id: 'livePrice',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Live price" />,
     cell: ({ row }) => {
       return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder />}</span>;
     },

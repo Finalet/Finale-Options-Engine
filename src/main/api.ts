@@ -99,14 +99,23 @@ ipcMain.on('open-window', (event, url: string) => {
 
 export interface ExecuteTradeArgs {
   spread: CallCreditSpread;
+  quantity: number;
+  atPrice?: number;
 }
 
-ipcMain.handle('executeTrade', async (event, { spread }: ExecuteTradeArgs) => {
+ipcMain.handle('executeTrade', async (event, { spread, atPrice, quantity }: ExecuteTradeArgs) => {
   const underlying = spread.underlying;
   underlying.historicalPrices = [];
+  if (atPrice !== undefined) {
+    spread.price = atPrice;
+    const distance = spread.shortLeg.strike - spread.longLeg.strike;
+    spread.maxProfit = atPrice * 100;
+    spread.maxLoss = distance * 100 - spread.maxProfit;
+  }
   const trade: CallCreditSpreadTrade = {
     id: nanoid(),
     status: 'open',
+    quantity: quantity,
     dateOpened: new Date(),
     underlying: underlying,
     spreadAtOpen: spread,
