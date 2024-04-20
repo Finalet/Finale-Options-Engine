@@ -130,7 +130,7 @@ const columns: any = [
     cell: ({ row }) => {
       const currentReturn = getCurrentChange(row.original);
       if (currentReturn === undefined) return <Placeholder />;
-      return <span className={`${currentReturn > 0 ? 'text-primary' : currentReturn === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{currentReturn}%</span>;
+      return <span className={`${currentReturn > 0 ? 'text-red-600' : currentReturn === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentReturn}%</span>;
     },
     sortingFn: (a, b) => {
       const aReturn = getCurrentChange(a.original);
@@ -144,7 +144,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
       if (row.original.spreadLive === undefined) return <Placeholder />;
-      const earned = (100 * row.original.quantity * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.stats.collateral;
+      const earned = (100 * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.stats.collateral;
       const returnPercent = roundTo(100 * earned);
       return <span className={`${returnPercent > 0 ? 'text-primary' : returnPercent === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{returnPercent}%</span>;
     },
@@ -152,7 +152,7 @@ const columns: any = [
       const aReturn = getCurrentChange(a.original);
       const bReturn = getCurrentChange(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
-      return aReturn - bReturn;
+      return bReturn - aReturn;
     },
   }),
 ];
@@ -165,5 +165,5 @@ const getCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
   const openPrice = trade.spreadAtOpen.price;
   const currentPrice = trade.spreadLive?.price;
   if (currentPrice === undefined) return undefined;
-  return roundTo((100 * (openPrice - currentPrice)) / openPrice, 2);
+  return roundTo((100 * (currentPrice - openPrice)) / openPrice, 2);
 };
