@@ -161,7 +161,7 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
         <CardDescription>Setup parameters for screening options</CardDescription>
       </CardHeader>
       <CardContent className="pb-6 h-full flex flex-col gap-2 overflow-auto px-0">
-        <div className="w-full flex flex-col items-start justify-between overflow-auto px-6">
+        <div className="w-full h-full flex flex-col items-start justify-start overflow-auto px-6">
           <div className="py-2 w-full flex flex-col items-center justify-center gap-4">
             <div className="w-full flex items-center justify-center gap-2">
               <AddTickerButton AddTickers={AddTickers} />
