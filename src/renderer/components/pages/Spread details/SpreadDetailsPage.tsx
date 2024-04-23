@@ -54,11 +54,11 @@ const SpreadDetailsPage = () => {
 
 export default SpreadDetailsPage;
 
-export const DisplayValue = ({ label, date, dollar, raw, percent }: { label: string; date?: Date; dollar?: number; raw?: string | number; percent?: number }) => {
+export const DisplayValue = ({ label, date, dollar, raw, percent, valueClassName }: { label: string; date?: Date; dollar?: number; raw?: string | number; percent?: number; valueClassName?: string }) => {
   return (
     <div className="w-full flex justify-between gap-8 text-sm">
       <div className="text-muted-foreground shrink-0 truncate">{label}</div>
-      <div className="text-right shrink-0 truncate">
+      <div className={`text-right shrink-0 truncate ${valueClassName}`}>
         {raw !== undefined ? (
           raw
         ) : dollar !== undefined ? (
@@ -75,7 +75,7 @@ export const DisplayValue = ({ label, date, dollar, raw, percent }: { label: str
   );
 };
 
-const StockDetails = ({ stock }: { stock: Stock }) => {
+export const StockDetails = ({ stock }: { stock: Stock }) => {
   const [highlightedPoint, setHighlightedPoint] = useState<StockHistoricalPrice | undefined>(undefined);
   const [priceChange, setPriceChange] = useState<{ change: number; percent: number } | undefined>(undefined);
 
@@ -169,7 +169,7 @@ const OptionDetails = ({ title, option }: { title: string; option: Option }) => 
             <DisplayValue label="Ask" dollar={option.ask} />
             {option.ask !== undefined && option.bid !== undefined && <DisplayValue label="Bid-ask spread" percent={(option.ask - option.bid) / option.ask} />}
           </div>
-          <div className="bg-red-100">
+          <div>
             <Separator orientation="vertical" />
           </div>
           <div className="flex flex-col gap-1">
@@ -178,7 +178,7 @@ const OptionDetails = ({ title, option }: { title: string; option: Option }) => 
             <DisplayValue label="Implied Volatility" percent={option.impliedVolatility} />
             <DisplayValue label="Volume" raw={option.volume} />
           </div>
-          <div className="bg-red-100">
+          <div>
             <Separator orientation="vertical" />
           </div>
           <div className="flex flex-col gap-1">

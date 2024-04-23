@@ -20,9 +20,6 @@ export function BuildCallCreditSpreads(chain: OptionChain, minDistance: number, 
       const maxProfit = 100 * price;
       const maxLoss = 100 * distance - maxProfit;
 
-      const distanceToShortStrike = (shortLeg.contractType === 'call' ? shortLeg.strike - chain.underlying.price : chain.underlying.price - shortLeg.strike) / chain.underlying.price;
-      const distanceToLongStrike = (longLeg.contractType === 'call' ? longLeg.strike - chain.underlying.price : chain.underlying.price - longLeg.strike) / chain.underlying.price;
-
       spreads.push({
         dateUpdated: new Date(),
         underlying: chain.underlying,
@@ -33,13 +30,8 @@ export function BuildCallCreditSpreads(chain: OptionChain, minDistance: number, 
         maxLoss,
         expiration: shortLeg.expiration,
         returnAtExpiration: roundTo(maxProfit / (distance * 100), 2),
-        stats: {
-          collateral: distance * 100,
-          daysToExpiration: Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays()),
-          distanceToShortStrike: roundTo(distanceToShortStrike, 2),
-          distanceToLongStrike: roundTo(distanceToLongStrike, 2),
-          distanceOverBollingerBand: roundTo((shortLeg.strike - chain.underlying.bollingerBands.upperBand) / shortLeg.strike, 2),
-        },
+        collateral: distance * 100,
+        daysToExpiration: Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays()),
       });
     }
   }

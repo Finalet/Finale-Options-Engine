@@ -64,11 +64,17 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
   const [year, month, day] = polygonOption.details.expiration_date.split('-').map(Number);
   const expiration = new Date(year, month - 1, day, 17, 30, 0);
 
+  const contractType = polygonOption.details.contract_type;
+  const strike = polygonOption.details.strike_price;
+
+  const distanceToStrike = (contractType === 'call' ? strike - underlying.price : underlying.price - strike) / underlying.price;
+  const distanceOverBollingerBand = (strike - underlying.bollingerBands.upperBand) / strike;
+
   return {
     ticker: polygonOption.details.ticker.split(':')[1],
     underlying: underlying,
-    contractType: polygonOption.details.contract_type,
-    strike: polygonOption.details.strike_price,
+    contractType: contractType,
+    strike: strike,
     expiration: expiration,
     bid: yahooOption?.bid !== undefined ? roundTo(yahooOption?.bid, 2) : undefined,
     ask: yahooOption?.ask !== undefined ? roundTo(yahooOption?.ask, 2) : undefined,
@@ -80,6 +86,8 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
       theta: roundTo(polygonOption.greeks.theta, 4),
       vega: roundTo(polygonOption.greeks.vega, 4),
     },
+    distanceToStrike: roundTo(distanceToStrike, 2),
+    distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),
     volume: yahooOption?.volume ?? (daysSinceUpdate > 1 ? 0 : polygonOption.day.volume),
   };
 };

@@ -15,6 +15,8 @@ export interface Option {
     vega: number;
   };
   volume: number;
+  distanceToStrike: number;
+  distanceOverBollingerBand: number;
 }
 
 export interface OptionChain {
@@ -53,19 +55,16 @@ export interface CallCreditSpread {
   maxProfit: number;
   maxLoss: number;
   returnAtExpiration: number;
-  stats: {
-    collateral: number;
-    daysToExpiration: number;
-    distanceToShortStrike: number;
-    distanceToLongStrike: number;
-    distanceOverBollingerBand: number;
-  };
+  daysToExpiration: number;
+  collateral: number;
 }
 
 export interface CallCreditSpreadTrade {
   id: string;
   status: 'open' | 'closed';
   quantity: number;
+  credit: number;
+  collateral: number;
   underlying: Stock;
   dateOpened: Date;
   dateClosed?: Date;

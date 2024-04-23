@@ -13,7 +13,7 @@ import { Button } from '../../shadcn/ui/button';
 import { ExternalLink } from 'lucide-react';
 import dateAndTime from 'date-and-time';
 import { Separator } from '../../shadcn/ui/separator';
-import { DisplayValue } from '../SpreadDetails/SpreadDetailsPage';
+import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 
 const ScreenerPage = () => {
   const [spreads, setSpreads] = useState<CallCreditSpread[]>([]);
@@ -83,7 +83,15 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
   }, [colors]);
 
   function OpenSpreadDetails(spread: CallCreditSpread) {
-    window.api.openWindow(`/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`);
+    window.api.openWindow({
+      url: `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`,
+      width: 966,
+      minWidth: 966,
+      maxWidth: 966,
+      height: 762,
+      minHeight: 762,
+      maxHeight: 762,
+    });
     setPreviewingSpread(undefined);
   }
 
@@ -183,19 +191,19 @@ const columns: any = [
     id: 'delta',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Delta" />,
   }),
-  columnHelper.accessor((row) => row.stats.distanceToShortStrike, {
+  columnHelper.accessor((row) => row.shortLeg.distanceToStrike, {
     id: 'DTS',
     header: ({ column }) => <DataTableColumnHeader column={column} title="DTS" />,
     sortingFn: (a, b) => a.original.shortLeg.strike - b.original.shortLeg.strike,
     cell: ({ row }) => {
-      return <span>{Math.round(row.original.stats.distanceToShortStrike * 100)}%</span>;
+      return <span>{Math.round(row.original.shortLeg.distanceToStrike * 100)}%</span>;
     },
   }),
-  columnHelper.accessor((row) => row.stats.distanceOverBollingerBand, {
+  columnHelper.accessor((row) => row.shortLeg.distanceOverBollingerBand, {
     id: 'DOB',
     header: ({ column }) => <DataTableColumnHeader column={column} title="DOB" />,
     cell: ({ row }) => {
-      return <span>{Math.round(row.original.stats.distanceOverBollingerBand * 100)}%</span>;
+      return <span>{Math.round(row.original.shortLeg.distanceOverBollingerBand * 100)}%</span>;
     },
   }),
   columnHelper.accessor((row) => row.returnAtExpiration, {
@@ -215,7 +223,7 @@ interface SpreadPreviewProps {
   className?: string;
 }
 
-const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }: SpreadPreviewProps) => {
+export const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }: SpreadPreviewProps) => {
   return (
     <Card className={`bg-card/80 backdrop-blur-md shadow-2xl ${className}`} onMouseLeave={(e) => onMouseLeave?.(e)}>
       <CardHeader className="relative">
@@ -231,15 +239,15 @@ const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }: Sprea
         <div className="w-full flex flex-col gap-1">
           <DisplayValue label="Return" percent={spread.returnAtExpiration} />
           <DisplayValue label="Price" dollar={spread.price} />
-          <DisplayValue label="Days to expiration" raw={spread.stats.daysToExpiration} />
+          <DisplayValue label="Days to expiration" raw={spread.daysToExpiration} />
           <Separator className="my-2" />
           <DisplayValue label="Profit / Loss" raw={`$${spread.maxProfit.toFixed(0)} / $${spread.maxLoss.toFixed(0)}`} />
-          <DisplayValue label="Collateral" dollar={spread.stats.collateral} />
+          <DisplayValue label="Collateral" dollar={spread.collateral} />
           <Separator className="my-2" />
           <DisplayValue label="Short delta" raw={spread.shortLeg.greeks.delta} />
           <DisplayValue label="Short IV" percent={spread.shortLeg.impliedVolatility} />
-          <DisplayValue label="Distance to strike" percent={spread.stats.distanceToShortStrike} />
-          <DisplayValue label="Distance over Bollinger" percent={spread.stats.distanceOverBollingerBand} />
+          <DisplayValue label="Distance to strike" percent={spread.shortLeg.distanceToStrike} />
+          <DisplayValue label="Distance over Bollinger" percent={spread.shortLeg.distanceOverBollingerBand} />
           <Separator className="my-2" />
           <DisplayValue label="Next earnings" date={spread.underlying.earningsDate} />
           <DisplayValue label="Ex divident" date={spread.underlying.exDividendDate} />

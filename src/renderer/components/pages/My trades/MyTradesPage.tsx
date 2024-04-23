@@ -30,6 +30,18 @@ const MyTradesPage = () => {
     }
   }
 
+  function OpenTradeDetails(trade: CallCreditSpreadTrade) {
+    window.api.openWindow({
+      url: `trade-details?id=${trade.id}`,
+      width: 826,
+      minWidth: 826,
+      maxWidth: 826,
+      height: 470,
+      minHeight: 470,
+      maxHeight: 470,
+    });
+  }
+
   useEffect(() => {
     LoadTrades();
   }, []);
@@ -42,7 +54,7 @@ const MyTradesPage = () => {
           <CardDescription>List of open and closed positions.</CardDescription>
         </CardHeader>
         <CardContent className="h-full overflow-auto">
-          <DataTable data={trades} columns={columns} searchColumnID="ticker" searchPlaceholder="Search ticker" />
+          <DataTable data={trades} columns={columns} onRowClick={OpenTradeDetails} searchColumnID="ticker" searchPlaceholder="Search ticker" />
         </CardContent>
       </Card>
     </div>
@@ -99,7 +111,7 @@ const columns: any = [
     id: 'credit',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Credit" />,
     cell: ({ row }) => {
-      return <span>${(row.original.spreadAtOpen.maxProfit * row.original.quantity).toFixed(0)}</span>;
+      return <span>${row.original.credit.toFixed(0)}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.underlying.price, {
@@ -121,7 +133,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Expiration" />,
     cell: ({ row }) => {
       const isThisYear = new Date().getFullYear() === row.original.dateOpened.getFullYear();
-      const dte = row.original.spreadLive?.stats.daysToExpiration ?? Math.ceil(date.subtract(row.original.spreadAtOpen.expiration, new Date()).toDays());
+      const dte = row.original.spreadLive?.daysToExpiration ?? Math.ceil(date.subtract(row.original.spreadAtOpen.expiration, new Date()).toDays());
       return (
         <span>
           {date.format(row.original.spreadAtOpen.expiration, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')} ({dte}d)
@@ -150,7 +162,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
       if (row.original.spreadLive === undefined) return <Placeholder />;
-      const earned = (100 * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.stats.collateral;
+      const earned = (100 * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.collateral;
       const returnPercent = roundTo(100 * earned);
       return <span className={`${returnPercent > 0 ? 'text-primary' : returnPercent === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{returnPercent}%</span>;
     },

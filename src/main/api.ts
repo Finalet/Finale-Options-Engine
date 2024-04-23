@@ -53,11 +53,30 @@ ipcMain.handle('getCachedCallCreditSpread', async (event, { ticker, expiration, 
   return spread;
 });
 
+export interface GetCachedCallCreditSpreadTradeArgs {
+  tradeID: string;
+}
+
+ipcMain.handle('getCachedCallCreditSpreadTrade', async (event, { tradeID }: GetCachedCallCreditSpreadTradeArgs): Promise<CallCreditSpreadTrade | undefined> => {
+  const trade = DataManager.cachedTrades.find((t) => t.id === tradeID);
+  return trade;
+});
+
 ipcMain.on('clearCachedSpreads', () => {
   DataManager.cachedSpreads = [];
 });
 
-ipcMain.on('open-window', (event, url: string) => {
+export interface OpenWindowArgs {
+  url: string;
+  width?: number;
+  height?: number;
+  minWidth?: number;
+  minHeight?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+}
+
+ipcMain.on('open-window', (event, { url, width, minWidth, maxWidth, height, minHeight, maxHeight }: OpenWindowArgs) => {
   const RESOURCES_PATH = app.isPackaged ? path.join(process.resourcesPath, 'assets') : path.join(__dirname, '../../assets');
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
@@ -69,12 +88,12 @@ ipcMain.on('open-window', (event, url: string) => {
     backgroundMaterial: 'acrylic',
     vibrancy: 'fullscreen-ui',
     maximizable: false,
-    width: 966,
-    maxWidth: 966,
-    minWidth: 966,
-    height: 762, //722,
-    maxHeight: 762, //722,
-    minHeight: 762, //722,
+    width: width,
+    maxWidth: maxWidth,
+    minWidth: minWidth,
+    height: height,
+    maxHeight: maxHeight,
+    minHeight: minHeight,
     resizable: false,
     icon: getAssetPath('icon.png'),
     webPreferences: {
@@ -105,10 +124,11 @@ export interface ExecuteTradeArgs {
 
 ipcMain.handle('executeTrade', async (event, { spread, atPrice, quantity }: ExecuteTradeArgs) => {
   const underlying = spread.underlying;
-  underlying.historicalPrices = [];
+  delete underlying.historicalPrices;
+
   if (atPrice !== undefined) {
     spread.price = atPrice;
-    const distance = spread.shortLeg.strike - spread.longLeg.strike;
+    const distance = spread.longLeg.strike - spread.shortLeg.strike;
     spread.maxProfit = atPrice * 100;
     spread.maxLoss = distance * 100 - spread.maxProfit;
   }
@@ -116,6 +136,8 @@ ipcMain.handle('executeTrade', async (event, { spread, atPrice, quantity }: Exec
     id: nanoid(),
     status: 'open',
     quantity: quantity,
+    credit: spread.price * 100 * quantity,
+    collateral: spread.collateral * quantity,
     dateOpened: new Date(),
     underlying: underlying,
     spreadAtOpen: spread,
@@ -125,5 +147,7 @@ ipcMain.handle('executeTrade', async (event, { spread, atPrice, quantity }: Exec
 });
 
 ipcMain.handle('loadTrades', async () => {
-  return DataManager.LoadTrades();
+  const trades = await DataManager.LoadTrades();
+  DataManager.cachedTrades = trades;
+  return trades;
 });

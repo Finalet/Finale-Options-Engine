@@ -6,6 +6,7 @@ import fs from 'fs';
 
 export class DataManager {
   static cachedSpreads: CallCreditSpread[] = [];
+  static cachedTrades: CallCreditSpreadTrade[] = [];
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
     const tradesFolderPath = DataManager.getTradesFolderPath();
@@ -59,6 +60,7 @@ export class DataManager {
   }
   private static processTradeDates(trade: CallCreditSpreadTrade) {
     trade.dateOpened = new Date(trade.dateOpened);
+    this.processStockDates(trade.underlying);
     this.processSpreadDates(trade.spreadAtOpen);
     if (trade.spreadAtClose) this.processSpreadDates(trade.spreadAtClose);
     if (trade.spreadLive) this.processSpreadDates(trade.spreadLive);
