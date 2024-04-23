@@ -1,4 +1,4 @@
-import { IOptionsChainQuery, IOptionsSnapshotChain, IRestClient, restClient } from '@polygon.io/client-js';
+import { IOptionsChainQuery, IOptionsSnapshotChain, IOptionsSnapshotContract, IRestClient, restClient } from '@polygon.io/client-js';
 import { Option, OptionChain, Stock } from './Types';
 import yahooFinance from 'yahoo-finance2';
 import { CallOrPut } from 'yahoo-finance2/dist/esm/src/modules/options';
@@ -43,18 +43,34 @@ export async function GetCallOptionChain(stock: string | Stock, expiration: Date
     }
   }
 
-  const polygonOptionsn = polygonChain.flatMap((chain) => chain.results).filter((option) => option !== undefined);
+  const polygonOptions = polygonChain.flatMap((chain) => chain.results).filter((option) => option !== undefined);
 
   const optionChain: OptionChain = {
     underlying: underlyingStock,
     options:
-      polygonOptionsn.map((polygonOption) => {
+      polygonOptions.map((polygonOption) => {
         const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
         return optionFromPolygonAndYahoo(polygonOption, yahooOption, underlyingStock);
       }) ?? [],
   };
 
   return optionChain;
+}
+
+export async function GetCallOption(optionTicker: string, underlying: Stock): Promise<Option> {
+  yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
+
+  // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
+  // const polygonOption = polygonResults.results;
+  const response = await fetch(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=Sh_nXzj6SixRgsLIOdePJoaPwoz7nzHE`);
+  const polygonResults: IOptionsSnapshotContract = response.ok ? await response.json() : undefined;
+  const polygonOption = polygonResults.results;
+  if (!polygonOption) throw new Error(`Option with ticker ${optionTicker} not found.`);
+
+  const yahooOptions = await yahooFinance.options(underlying.ticker, { date: polygonOption.details?.expiration_date, formatted: true });
+  const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
+
+  return optionFromPolygonAndYahoo(polygonOption, yahooOption, underlying);
 }
 
 export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallOrPut | undefined, underlying: Stock): Option => {

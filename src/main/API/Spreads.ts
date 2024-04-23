@@ -26,13 +26,12 @@ ipcMain.handle('RunScreener', async (event, { ticker, expiration, params }: RunS
 
 export interface GetSpreadArgs {
   ticker: string;
-  expiration: Date;
-  shortStrike: number;
-  longStrike: number;
+  shortOptionTicker: string;
+  longOptionTicker: string;
 }
 
-ipcMain.handle('GetSpread', async (event, { ticker, expiration, shortStrike, longStrike }: GetSpreadArgs): Promise<CallCreditSpread> => {
-  const spread = await GetSpread(ticker, expiration, shortStrike, longStrike);
+ipcMain.handle('GetSpread', async (event, { ticker, shortOptionTicker, longOptionTicker }: GetSpreadArgs): Promise<CallCreditSpread> => {
+  const spread = await GetSpread(ticker, shortOptionTicker, longOptionTicker);
   return spread;
 });
 

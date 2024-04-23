@@ -20,7 +20,7 @@ const MyTradesPage = () => {
 
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
     for (const trade of trades) {
-      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, expiration: trade.spreadAtOpen.expiration, shortStrike: trade.spreadAtOpen.shortLeg.strike, longStrike: trade.spreadAtOpen.longLeg.strike });
+      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
       trade.spreadLive = liveSpread;
       setTrades((prev) => {
         const index = prev.findIndex((t) => t.id === trade.id);

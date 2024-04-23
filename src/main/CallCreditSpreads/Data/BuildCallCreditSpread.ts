@@ -1,4 +1,4 @@
-import { CallCreditSpread, OptionChain } from './Types';
+import { CallCreditSpread, Option, OptionChain, Stock } from './Types';
 import { roundTo } from './Utils';
 import date from 'date-and-time';
 
@@ -16,25 +16,32 @@ export function BuildCallCreditSpreads(chain: OptionChain, minDistance: number, 
       if (distance < minDistance) continue;
       if (distance > maxDistance) break;
 
-      const price = roundTo(shortLeg.price - longLeg.price, 2);
-      const maxProfit = 100 * price;
-      const maxLoss = 100 * distance - maxProfit;
-
-      spreads.push({
-        dateUpdated: new Date(),
-        underlying: chain.underlying,
-        shortLeg,
-        longLeg,
-        price,
-        maxProfit,
-        maxLoss,
-        expiration: shortLeg.expiration,
-        returnAtExpiration: roundTo(maxProfit / (distance * 100), 2),
-        collateral: distance * 100,
-        daysToExpiration: Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays()),
-      });
+      spreads.push(BuildCallCreditSpread(chain.underlying, shortLeg, longLeg));
     }
   }
 
   return spreads;
+}
+
+export function BuildCallCreditSpread(underlying: Stock, shortLeg: Option, longLeg: Option): CallCreditSpread {
+  const distance = longLeg.strike - shortLeg.strike;
+  const price = roundTo(shortLeg.price - longLeg.price, 2);
+  const maxProfit = 100 * price;
+  const maxLoss = 100 * distance - maxProfit;
+  const collateral = distance * 100;
+
+  const spread = {
+    dateUpdated: new Date(),
+    underlying,
+    shortLeg,
+    longLeg,
+    price,
+    maxProfit,
+    maxLoss,
+    expiration: shortLeg.expiration,
+    returnAtExpiration: roundTo(maxProfit / collateral, 2),
+    collateral,
+    daysToExpiration: Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays()),
+  };
+  return spread;
 }

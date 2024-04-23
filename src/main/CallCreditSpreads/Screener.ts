@@ -1,6 +1,7 @@
-import { BuildCallCreditSpreads } from './Data/BuildCallCreditSpread';
-import { GetCallOptionChain } from './Data/CallOptionChain';
-import { CallCreditSpread, Option } from './Data/Types';
+import { BuildCallCreditSpread, BuildCallCreditSpreads } from './Data/BuildCallCreditSpread';
+import { GetCallOption, GetCallOptionChain } from './Data/CallOptionChain';
+import { GetStock } from './Data/Stock';
+import { CallCreditSpread, Option, OptionChain } from './Data/Types';
 import { filterByDaysToEarnings, filterByReturn } from './Filters/CallCreditSpreadFilters';
 import { filterByBidAskSpread, filterByBollingerBands, filterByDelta, filterByDistanceToStrike, filterByIV, filterByVolume } from './Filters/OptionFilters';
 
@@ -62,10 +63,11 @@ export async function RunScreener(stock: string, expiration: Date | string, para
   };
 }
 
-export async function GetSpread(stock: string, expiration: Date, shortStrike: number, longStrike: number): Promise<CallCreditSpread> {
-  const chain = await GetCallOptionChain(stock, expiration, [shortStrike, longStrike]);
-  const spread = BuildCallCreditSpreads(chain, longStrike - shortStrike, longStrike - shortStrike);
-  return spread[0];
+export async function GetSpread(underlyingTicker: string, shortOptionTicker: string, longOptionTicker: string): Promise<CallCreditSpread> {
+  const stock = await GetStock(underlyingTicker);
+  const shortOption = await GetCallOption(shortOptionTicker, stock);
+  const longOption = await GetCallOption(longOptionTicker, stock);
+  return BuildCallCreditSpread(stock, shortOption, longOption);
 }
 
 export interface SpreadParameters {
