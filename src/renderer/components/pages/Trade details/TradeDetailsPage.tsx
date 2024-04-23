@@ -20,8 +20,8 @@ const TradeDetailsPage = () => {
     const tradeID = searchParams.get('id');
     if (!tradeID) return;
 
-    const trade = await window.api.getCachedCallCreditSpreadTrade({ tradeID });
-    const liveSpread = await window.api.getCallCreditSpread({ ticker: trade.underlying.ticker, expiration: trade.spreadAtOpen.expiration, shortStrike: trade.spreadAtOpen.shortLeg.strike, longStrike: trade.spreadAtOpen.longLeg.strike });
+    const trade = await window.api.trades.getCachedTrade({ tradeID });
+    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, expiration: trade.spreadAtOpen.expiration, shortStrike: trade.spreadAtOpen.shortLeg.strike, longStrike: trade.spreadAtOpen.longLeg.strike });
     trade.spreadLive = liveSpread;
     setTrade(trade);
   }

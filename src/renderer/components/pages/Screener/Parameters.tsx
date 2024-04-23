@@ -12,7 +12,7 @@ import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { DatePickerWithPresets } from '../../elements/DatePicker/DatePickerWithPresets';
 import { Badge } from '../../shadcn/ui/badge';
-import { SpreadParameters } from '@/src/main/CallCreditSpreads/CallCreditSpreads';
+import { SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, top100Tickers } from '@/src/main/CallCreditSpreads/Data/Tickers';
 import date from 'date-and-time';
 import { Label } from '../../shadcn/ui/label';

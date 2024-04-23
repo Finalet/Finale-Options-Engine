@@ -1,15 +1,15 @@
-import { BuildCallCreditSpreads } from './Data/CallCreditSpread';
+import { BuildCallCreditSpreads } from './Data/BuildCallCreditSpread';
 import { GetCallOptionChain } from './Data/CallOptionChain';
 import { CallCreditSpread, Option } from './Data/Types';
 import { filterByDaysToEarnings, filterByReturn } from './Filters/CallCreditSpreadFilters';
 import { filterByBidAskSpread, filterByBollingerBands, filterByDelta, filterByDistanceToStrike, filterByIV, filterByVolume } from './Filters/OptionFilters';
 
-export interface CallCreditSpreadScreenerResults {
+export interface ScreenerResults {
   spreads: CallCreditSpread[];
   statistics: ScreenerStatistics;
 }
 
-export async function GetCallCreditSpreads(stock: string, expiration: Date | string, params?: SpreadParameters): Promise<CallCreditSpreadScreenerResults> {
+export async function RunScreener(stock: string, expiration: Date | string, params?: SpreadParameters): Promise<ScreenerResults> {
   const { minSpreadDistance, maxSpreadDistance, minDistanceToStrike, minIV, maxIV, maxDelta, minVolume, minDistanceOverBollingerBand, minDaysToEarnings, maxLegBidAskSpread, minReturn } = params ?? {};
 
   const chain = await GetCallOptionChain(stock, expiration);
@@ -62,7 +62,7 @@ export async function GetCallCreditSpreads(stock: string, expiration: Date | str
   };
 }
 
-export async function GetCallCreditSpread(stock: string, expiration: Date, shortStrike: number, longStrike: number): Promise<CallCreditSpread> {
+export async function GetSpread(stock: string, expiration: Date, shortStrike: number, longStrike: number): Promise<CallCreditSpread> {
   const chain = await GetCallOptionChain(stock, expiration, [shortStrike, longStrike]);
   const spread = BuildCallCreditSpreads(chain, longStrike - shortStrike, longStrike - shortStrike);
   return spread[0];

@@ -1,19 +1,27 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer } from 'electron';
-import { ExecuteTradeArgs, GetCachedCallCreditSpreadArgs, GetCachedCallCreditSpreadTradeArgs, GetCallCreditSpreadArgs, GetCallCreditSpreadsArgs, OpenWindowArgs } from './api';
-import { CallCreditSpreadScreenerResults } from './CallCreditSpreads/CallCreditSpreads';
+import { ScreenerResults } from './CallCreditSpreads/Screener';
 import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
+import { GetCachedSpread, GetSpreadArgs, RunScreenerResultsArgs } from './API/Spreads';
+import { ExecuteTradeArgs, GetCachedTradeArgs } from './API/Trades';
+import { OpenWindowArgs } from './API/App';
 
 const API = {
-  getCallCreditSpreads: (args: GetCallCreditSpreadsArgs): Promise<CallCreditSpreadScreenerResults> => ipcRenderer.invoke('getCallCreditSpreads', args),
-  getCallCreditSpread: (args: GetCallCreditSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('getCallCreditSpread', args),
-  getCachedCallCreditSpread: (args: GetCachedCallCreditSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('getCachedCallCreditSpread', args),
-  getCachedCallCreditSpreadTrade: (args: GetCachedCallCreditSpreadTradeArgs): Promise<CallCreditSpreadTrade> => ipcRenderer.invoke('getCachedCallCreditSpreadTrade', args),
-  clearCachedSpreads: () => ipcRenderer.send('clearCachedSpreads'),
-  executeTrade: (args: ExecuteTradeArgs) => ipcRenderer.invoke('executeTrade', args),
-  loadTrades: () => ipcRenderer.invoke('loadTrades'),
-  openWindow: (args: OpenWindowArgs) => ipcRenderer.send('open-window', args),
+  spreads: {
+    RunScreener: (args: RunScreenerResultsArgs): Promise<ScreenerResults> => ipcRenderer.invoke('RunScreener', args),
+    GetSpread: (args: GetSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('GetSpread', args),
+    getCachedSpread: (args: GetCachedSpread): Promise<CallCreditSpread> => ipcRenderer.invoke('getCachedSpread', args),
+    ClearCachedSpreads: () => ipcRenderer.send('ClearCachedSpreads'),
+  },
+  trades: {
+    LoadTrades: () => ipcRenderer.invoke('LoadTrades'),
+    ExecuteTrade: (args: ExecuteTradeArgs) => ipcRenderer.invoke('ExecuteTrade', args),
+    getCachedTrade: (args: GetCachedTradeArgs): Promise<CallCreditSpreadTrade> => ipcRenderer.invoke('getCachedTrade', args),
+  },
+  app: {
+    OpenWindow: (args: OpenWindowArgs) => ipcRenderer.send('OpenWindow', args),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', API);

@@ -16,7 +16,7 @@ const ExecuteTradePopup = ({ spread, open }: { spread: CallCreditSpread; open: b
     console.log(price);
     if (!price) return;
 
-    const promise = window.api.executeTrade({ spread, atPrice: price, quantity });
+    const promise = window.api.trades.ExecuteTrade({ spread, atPrice: price, quantity });
     toast.promise(promise, {
       loading: 'Executing trade...',
       success: () => `${tradeDisplay} executed at $${price}.`,

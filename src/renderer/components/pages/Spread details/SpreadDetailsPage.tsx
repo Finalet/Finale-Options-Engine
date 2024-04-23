@@ -1,7 +1,7 @@
 import { CallCreditSpread, Option, Stock, StockHistoricalPrice } from '@/src/main/CallCreditSpreads/Data/Types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../shadcn/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
 import { Separator } from '../../shadcn/ui/separator';
 import dateAndTime from 'date-and-time';
@@ -9,7 +9,6 @@ import PriceChart, { ChartTimeFrame } from './PriceChart';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { Button } from '../../shadcn/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { toast } from 'sonner';
 import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
 import ExecuteTradePopup from './ExecuteTradePopup';
 
@@ -25,7 +24,7 @@ const SpreadDetailsPage = () => {
     const longStrike = searchParams.get('longStrike');
     if (!ticker || !expiration || !shortStrike || !longStrike) return;
 
-    const spread = await window.api.getCachedCallCreditSpread({ ticker, expiration: new Date(expiration), shortStrike: parseFloat(shortStrike), longStrike: parseFloat(longStrike) });
+    const spread = await window.api.spreads.getCachedSpread({ ticker, expiration: new Date(expiration), shortStrike: parseFloat(shortStrike), longStrike: parseFloat(longStrike) });
     setSpread(spread);
   }
 

@@ -13,7 +13,10 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './util';
-import './api';
+import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
+import './API/App';
+import './API/Spreads';
+import './API/Trades';
 
 class AppUpdater {
   constructor() {
@@ -121,6 +124,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    ConfigurePolygon();
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

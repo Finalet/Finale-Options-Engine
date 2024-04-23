@@ -1,4 +1,4 @@
-import { SpreadParameters } from '@/src/main/CallCreditSpreads/CallCreditSpreads';
+import { SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 
 export const MinReturn: Parameter = { id: 'minReturn', name: 'Min return', defaultValue: 5, unit: 'percentage' };
 export const MaxDelta: Parameter = { id: 'maxDelta', name: 'Max delta', defaultValue: 0.1, unit: 'absolute' };

@@ -4,7 +4,7 @@ import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { Command, CommandGroup, CommandItem, CommandList } from '../../shadcn/ui/command';
 import { cn } from '../../shadcn/lib/utils';
 import { useState } from 'react';
-import { ScreenerStatistics } from '@/src/main/CallCreditSpreads/CallCreditSpreads';
+import { ScreenerStatistics } from '@/src/main/CallCreditSpreads/Screener';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 
 const ScreenerBreakdown = ({ statistics }: { statistics?: ScreenerStatistics | undefined }) => {

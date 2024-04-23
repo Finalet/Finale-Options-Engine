@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from 'react';
 import { CallCreditSpread } from '@/src/main/CallCreditSpreads/Data/Types';
 import { Badge } from '../../shadcn/ui/badge';
 import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
-import { ScreenerStatistics, SpreadParameters } from '@/src/main/CallCreditSpreads/CallCreditSpreads';
+import { ScreenerStatistics, SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import ScreenerBreakdown from './ScreenerBreakdown';
 import { toast } from 'sonner';
 import { Button } from '../../shadcn/ui/button';
@@ -24,7 +24,7 @@ const ScreenerPage = () => {
   const colorDict = useRef<ColorDictionary>({});
 
   async function RunScreener(tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) {
-    window.api.clearCachedSpreads();
+    window.api.spreads.ClearCachedSpreads();
     setSpreads([]);
     setStatistics(undefined);
     setRunning(true);
@@ -32,7 +32,7 @@ const ScreenerPage = () => {
     colorDict.current = colors;
     for (const ticker of tickers) {
       try {
-        const { spreads, statistics } = await window.api.getCallCreditSpreads({ ticker, expiration, params });
+        const { spreads, statistics } = await window.api.spreads.RunScreener({ ticker, expiration, params });
         setStatistics((prev) => {
           if (!prev) return statistics;
           prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
@@ -83,7 +83,7 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
   }, [colors]);
 
   function OpenSpreadDetails(spread: CallCreditSpread) {
-    window.api.openWindow({
+    window.api.app.OpenWindow({
       url: `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`,
       width: 966,
       minWidth: 966,

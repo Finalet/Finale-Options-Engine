@@ -13,14 +13,14 @@ const MyTradesPage = () => {
   const [trades, setTrades] = useState<CallCreditSpreadTrade[]>([]);
 
   async function LoadTrades() {
-    const trades = await window.api.loadTrades();
+    const trades = await window.api.trades.LoadTrades();
     setTrades(trades);
     GetLiveData(trades);
   }
 
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
     for (const trade of trades) {
-      const liveSpread = await window.api.getCallCreditSpread({ ticker: trade.underlying.ticker, expiration: trade.spreadAtOpen.expiration, shortStrike: trade.spreadAtOpen.shortLeg.strike, longStrike: trade.spreadAtOpen.longLeg.strike });
+      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, expiration: trade.spreadAtOpen.expiration, shortStrike: trade.spreadAtOpen.shortLeg.strike, longStrike: trade.spreadAtOpen.longLeg.strike });
       trade.spreadLive = liveSpread;
       setTrades((prev) => {
         const index = prev.findIndex((t) => t.id === trade.id);
@@ -31,7 +31,7 @@ const MyTradesPage = () => {
   }
 
   function OpenTradeDetails(trade: CallCreditSpreadTrade) {
-    window.api.openWindow({
+    window.api.app.OpenWindow({
       url: `trade-details?id=${trade.id}`,
       width: 828,
       minWidth: 828,
