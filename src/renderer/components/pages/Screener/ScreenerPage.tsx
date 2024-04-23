@@ -137,7 +137,8 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
           searchColumnID="ticker"
           searchPlaceholder="Search ticker"
           onRowClick={OpenSpreadDetails}
-          onRowContextMenu={(s, e) => {
+          onRowContextMenu={(s, e): void => {
+            // Add return type annotation
             if (!parentRef.current) return;
             setPreviewPosition(getPreviewPos(e.clientY, e.clientX));
             setPreviewingSpread(s);

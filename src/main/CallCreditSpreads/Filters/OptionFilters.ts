@@ -1,4 +1,4 @@
-import { Option } from '../Data/Types';
+import { Option, Stock } from '../Data/Types';
 import { roundTo } from '../Data/Utils';
 
 export function filterByDelta(option: Option, maxDelta: number): boolean {
@@ -13,9 +13,9 @@ export function filterByVolume(option: Option, minVolume: number): boolean {
   return option.volume >= minVolume;
 }
 
-export function filterByDistanceToStrike(option: Option, minDistance: number): boolean {
-  if (option.contractType === 'call') return (option.strike - option.underlying.price) / option.underlying.price >= minDistance;
-  return (option.underlying.price - option.strike) / option.underlying.price >= minDistance;
+export function filterByDistanceToStrike(option: Option, underlying: Stock, minDistance: number): boolean {
+  if (option.contractType === 'call') return (option.strike - underlying.price) / underlying.price >= minDistance;
+  return (underlying.price - option.strike) / underlying.price >= minDistance;
 }
 
 export function filterByBollingerBands(option: Option, upperBand: number, minDistanceOver: number): boolean {

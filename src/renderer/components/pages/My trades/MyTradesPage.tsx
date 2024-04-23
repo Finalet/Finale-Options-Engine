@@ -20,7 +20,7 @@ const MyTradesPage = () => {
 
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
     for (const trade of trades) {
-      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
       trade.spreadLive = liveSpread;
       setTrades((prev) => {
         const index = prev.findIndex((t) => t.id === trade.id);
@@ -80,7 +80,7 @@ const columns: any = [
       return <span>{date.format(row.original.dateOpened, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')}</span>;
     },
   }),
-  columnHelper.accessor((row) => row.underlying.ticker, {
+  columnHelper.accessor((row) => row.spreadAtOpen.underlying.ticker, {
     id: 'ticker',
     header: 'Ticker',
   }),

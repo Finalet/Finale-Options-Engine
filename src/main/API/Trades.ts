@@ -32,7 +32,6 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
     credit: spread.price * 100 * quantity,
     collateral: spread.collateral * quantity,
     dateOpened: new Date(),
-    underlying: underlying,
     spreadAtOpen: spread,
   };
   DataManager.SaveNewTrade(trade);

@@ -1,6 +1,6 @@
 export interface Option {
   ticker: string;
-  underlying: Stock;
+  underlyingTicker: string;
   contractType: 'call' | 'put';
   strike: number;
   expiration: Date;
@@ -65,7 +65,6 @@ export interface CallCreditSpreadTrade {
   quantity: number;
   credit: number;
   collateral: number;
-  underlying: Stock;
   dateOpened: Date;
   dateClosed?: Date;
   spreadAtOpen: CallCreditSpread;

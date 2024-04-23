@@ -155,7 +155,7 @@ const OptionDetails = ({ title, option }: { title: string; option: Option }) => 
       <CardHeader className="relative">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{option.ticker}</CardDescription>
-        <div className="absolute top-3 right-6 text-muted-foreground text-sm">{`${option.underlying.ticker} $${option.strike} ${option.contractType.slice(0, 1).toUpperCase()}${option.contractType.slice(1)} ${dateAndTime.format(
+        <div className="absolute top-3 right-6 text-muted-foreground text-sm">{`${option.underlyingTicker} $${option.strike} ${option.contractType.slice(0, 1).toUpperCase()}${option.contractType.slice(1)} ${dateAndTime.format(
           option.expiration,
           'M/D',
         )}`}</div>

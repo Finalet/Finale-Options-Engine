@@ -34,7 +34,7 @@ export class DataManager {
     return `${app.getPath('userData')}/Data/Trades`;
   }
   private static getTradeFileName(trade: CallCreditSpreadTrade) {
-    return `${trade.underlying.ticker}_${date.format(trade.dateOpened, 'MM-DD-YYYY')}_${trade.id.slice(0, 5)}`;
+    return `${trade.spreadAtOpen.underlying.ticker}_${date.format(trade.dateOpened, 'MM-DD-YYYY')}_${trade.id.slice(0, 5)}`;
   }
   private static getTradeFilePath(trade: CallCreditSpreadTrade) {
     return `${this.getTradesFolderPath()}/${this.getTradeFileName(trade)}.json`;
@@ -42,7 +42,6 @@ export class DataManager {
 
   private static processOptionDates(option: Option) {
     option.expiration = new Date(option.expiration);
-    this.processStockDates(option.underlying);
   }
   private static processStockDates(stock: Stock) {
     stock.dateUpdated = new Date(stock.dateUpdated);
@@ -60,7 +59,6 @@ export class DataManager {
   }
   private static processTradeDates(trade: CallCreditSpreadTrade) {
     trade.dateOpened = new Date(trade.dateOpened);
-    this.processStockDates(trade.underlying);
     this.processSpreadDates(trade.spreadAtOpen);
     if (trade.spreadAtClose) this.processSpreadDates(trade.spreadAtClose);
     if (trade.spreadLive) this.processSpreadDates(trade.spreadLive);

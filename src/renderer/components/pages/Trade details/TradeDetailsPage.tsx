@@ -21,7 +21,7 @@ const TradeDetailsPage = () => {
     if (!tradeID) return;
 
     const trade = await window.api.trades.getCachedTrade({ tradeID });
-    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
     trade.spreadLive = liveSpread;
     setTrade(trade);
   }

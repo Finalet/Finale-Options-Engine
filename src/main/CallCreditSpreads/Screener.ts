@@ -21,7 +21,7 @@ export async function RunScreener(stock: string, expiration: Date | string, para
   };
 
   if (minDistanceToStrike !== undefined) {
-    chain.options = chain.options.filter((option: Option) => filterByDistanceToStrike(option, minDistanceToStrike));
+    chain.options = chain.options.filter((option: Option) => filterByDistanceToStrike(option, chain.underlying, minDistanceToStrike));
     statistics.optionsFilterSteps?.push({ step: 'DTS', count: chain.options.length });
   }
   if (minDistanceOverBollingerBand !== undefined) {

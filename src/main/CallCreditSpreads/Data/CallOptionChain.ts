@@ -88,7 +88,7 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
 
   return {
     ticker: polygonOption.details.ticker.split(':')[1],
-    underlying: underlying,
+    underlyingTicker: underlying.ticker,
     contractType: contractType,
     strike: strike,
     expiration: expiration,
