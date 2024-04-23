@@ -136,14 +136,14 @@ const SpreadDetails = ({ spread }: { spread: CallCreditSpread }) => {
           <DisplayValue label="Return" percent={spread.returnAtExpiration} />
           <DisplayValue label="Price" dollar={spread.price} />
           <DisplayValue label="Expiration" date={spread.expiration} />
-          <DisplayValue label="Days to expiration" raw={spread.stats.daysToExpiration} />
+          <DisplayValue label="Days to expiration" raw={spread.daysToExpiration} />
           <Separator className="my-2" />
           <DisplayValue label="Max profit" dollar={spread.maxProfit} />
           <DisplayValue label="Max loss" dollar={spread.maxLoss} />
-          <DisplayValue label="Collateral" dollar={spread.stats.collateral} />
+          <DisplayValue label="Collateral" dollar={spread.collateral} />
           <Separator className="my-2" />
-          <DisplayValue label="Distance over Bollinger" percent={spread.stats.distanceOverBollingerBand} />
-          <DisplayValue label="Distance to strike" percent={spread.stats.distanceToShortStrike} />
+          <DisplayValue label="Distance to strike" percent={spread.shortLeg.distanceToStrike} />
+          <DisplayValue label="Distance over Bollinger" percent={spread.shortLeg.distanceOverBollingerBand} />
         </div>
       </CardContent>
     </Card>

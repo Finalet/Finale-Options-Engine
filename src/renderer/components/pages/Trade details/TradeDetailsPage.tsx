@@ -36,9 +36,9 @@ const TradeDetailsPage = () => {
     <div className="w-screen h-screen flex flex-col items-start justify-start gap-3 select-none p-3 overflow-clip">
       <div className="flex items-start justify-start gap-3">
         <Trade trade={trade} />
-        <SpreadPreview title="Open" description={`As of ${date.format(trade.spreadAtOpen.dateUpdated, 'MMM D, YYYY')}`} spread={trade.spreadAtOpen} />
-        {trade.spreadLive && <SpreadPreview title="Live" description={`As of ${date.format(trade.spreadLive.dateUpdated, 'MMM D, YYYY')}`} spread={trade.spreadLive} />}
-        {trade.spreadAtClose && <SpreadPreview title="Close" description={`As of ${date.format(trade.spreadAtClose.dateUpdated, 'MMM D, YYYY')}`} spread={trade.spreadAtClose} />}
+        <SpreadPreview title="Opened" description={`${date.format(trade.spreadAtOpen.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtOpen} />
+        {trade.spreadLive && <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />}
+        {trade.spreadAtClose && <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />}
       </div>
       <Actions trade={trade} />
     </div>
@@ -70,23 +70,12 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
       </div>
       <CardContent>
         <div className="w-full flex flex-col gap-1">
-          {trade.status === 'open' ? (
-            <>
-              <DisplayValue label="Current return" percent={currentReturn} valueClassName={(currentReturn ?? 0) === 0 ? 'text-foreground' : (currentReturn ?? 0) > 0 ? 'text-primary' : 'text-red-600'} />
-              <DisplayValue label="Price" dollar={trade.spreadLive?.price} />
-              <DisplayValue label="Open price" dollar={trade.spreadAtOpen.price} />
-              <DisplayValue label="Days to expiration" raw={trade.spreadLive?.daysToExpiration} />
-            </>
-          ) : (
-            <>
-              <DisplayValue label="Return" percent={currentReturn} valueClassName={(currentReturn ?? 0) === 0 ? 'text-foreground' : (currentReturn ?? 0) > 0 ? 'text-primary' : 'text-red-600'} />
-              <DisplayValue label="Price" dollar={trade.spreadAtClose?.price} />
-              <DisplayValue label="Open price" dollar={trade.spreadAtOpen.price} />
-              {trade.dateClosed !== undefined && <DisplayValue label="Days held" raw={Math.ceil(date.subtract(trade.dateClosed, trade.dateOpened).toDays())} />}
-            </>
-          )}
+          <DisplayValue label="Return" percent={currentReturn} valueClassName={(currentReturn ?? 0) === 0 ? 'text-foreground' : (currentReturn ?? 0) > 0 ? 'text-primary' : 'text-red-600'} />
+          <DisplayValue label="Price" dollar={trade.spreadAtClose?.price ?? trade.spreadLive?.price} />
+          <DisplayValue label="Open price" dollar={trade.spreadAtOpen.price} />
+          <DisplayValue label={trade.dateClosed === undefined ? 'Days to expiration' : 'Days held'} raw={trade.spreadLive?.daysToExpiration ?? trade.spreadAtOpen.daysToExpiration} />
           <Separator className="my-2" />
-          <DisplayValue label="Spread" raw={`${trade.spreadAtOpen.shortLeg.strike} / ${trade.spreadAtOpen.longLeg.strike}`} />
+          <DisplayValue label="Spread" raw={`$${trade.spreadAtOpen.shortLeg.strike} / $${trade.spreadAtOpen.longLeg.strike}`} />
           <DisplayValue label="Quantity" raw={trade.quantity} />
           <DisplayValue label="Credit" dollar={trade.credit} />
           <DisplayValue label="Collateral" dollar={trade.collateral} />
@@ -134,7 +123,7 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
 const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   const [open, setOpen] = useState<boolean>(false);
   return (
-    <div className="w-full flex justify-end">
+    <div className="w-full flex justify-end p-3">
       <Dialog onOpenChange={(v) => setOpen(v)}>
         <DialogTrigger asChild>
           <Button>Close trade</Button>

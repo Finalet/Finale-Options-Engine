@@ -36,9 +36,9 @@ const MyTradesPage = () => {
       width: 826,
       minWidth: 826,
       maxWidth: 826,
-      height: 470,
-      minHeight: 470,
-      maxHeight: 470,
+      height: 482,
+      minHeight: 482,
+      maxHeight: 482,
     });
   }
 
