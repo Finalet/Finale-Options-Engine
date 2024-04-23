@@ -27,6 +27,7 @@ const MyTradesPage = () => {
         prev[index] = trade;
         return [...prev];
       });
+      window.api.trades.CacheTrade(trade);
     }
   }
 

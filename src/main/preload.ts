@@ -17,6 +17,7 @@ const API = {
   trades: {
     LoadTrades: () => ipcRenderer.invoke('LoadTrades'),
     ExecuteTrade: (args: ExecuteTradeArgs) => ipcRenderer.invoke('ExecuteTrade', args),
+    CacheTrade: (trade: CallCreditSpreadTrade) => ipcRenderer.invoke('CacheTrade', trade),
     getCachedTrade: (args: GetCachedTradeArgs): Promise<CallCreditSpreadTrade> => ipcRenderer.invoke('getCachedTrade', args),
   },
   app: {

@@ -9,6 +9,12 @@ ipcMain.handle('LoadTrades', async () => {
   return trades;
 });
 
+ipcMain.handle('CacheTrade', async (event, trade: CallCreditSpreadTrade) => {
+  const index = DataManager.cachedTrades.findIndex((t) => t.id === trade.id);
+  if (index === -1) DataManager.cachedTrades.push(trade);
+  else DataManager.cachedTrades[index] = trade;
+});
+
 export interface ExecuteTradeArgs {
   spread: CallCreditSpread;
   quantity: number;

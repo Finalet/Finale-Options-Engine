@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
 import { Badge } from '../../shadcn/ui/badge';
-import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
 import { ExternalLink } from 'lucide-react';
+import { Skeleton } from '../../shadcn/ui/skeleton';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -21,9 +21,12 @@ const TradeDetailsPage = () => {
     if (!tradeID) return;
 
     const trade = await window.api.trades.getCachedTrade({ tradeID });
-    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-    trade.spreadLive = liveSpread;
     setTrade(trade);
+    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+    setTrade((prev) => {
+      if (!prev) return prev;
+      return { ...prev, spreadLive: liveSpread };
+    });
   }
 
   useEffect(() => {
@@ -34,7 +37,7 @@ const TradeDetailsPage = () => {
 
   return (
     <div className="w-screen h-screen flex flex-col items-start justify-start gap-3 select-none p-3 overflow-clip">
-      <div className="flex items-start justify-start gap-3">
+      <div className="w-full flex items-start justify-start gap-3">
         <Trade trade={trade} />
         <div className="w-full flex flex-col gap-3">
           <div className="w-full flex items-start justify-start gap-3">

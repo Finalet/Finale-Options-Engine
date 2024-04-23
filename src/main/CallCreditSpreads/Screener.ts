@@ -65,8 +65,7 @@ export async function RunScreener(stock: string, expiration: Date | string, para
 
 export async function GetSpread(underlyingTicker: string, shortOptionTicker: string, longOptionTicker: string): Promise<CallCreditSpread> {
   const stock = await GetStock(underlyingTicker);
-  const shortOption = await GetCallOption(shortOptionTicker, stock);
-  const longOption = await GetCallOption(longOptionTicker, stock);
+  const [shortOption, longOption] = await Promise.all([GetCallOption(shortOptionTicker, stock), GetCallOption(longOptionTicker, stock)]);
   return BuildCallCreditSpread(stock, shortOption, longOption);
 }
 
