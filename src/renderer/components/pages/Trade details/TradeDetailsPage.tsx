@@ -36,11 +36,17 @@ const TradeDetailsPage = () => {
     <div className="w-screen h-screen flex flex-col items-start justify-start gap-3 select-none p-3 overflow-clip">
       <div className="flex items-start justify-start gap-3">
         <Trade trade={trade} />
-        <SpreadPreview title="Opened" description={`${date.format(trade.spreadAtOpen.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtOpen} />
-        {trade.spreadLive && <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />}
-        {trade.spreadAtClose && <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />}
+        <div className="w-full flex flex-col gap-3">
+          <div className="w-full flex items-start justify-start gap-3">
+            <SpreadPreview title="Opened" description={`${date.format(trade.spreadAtOpen.dateUpdated, isThisYear(trade.spreadAtOpen.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtOpen} />
+            {trade.spreadLive && <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, isThisYear(trade.spreadLive.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />}
+            {trade.spreadAtClose && (
+              <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, isThisYear(trade.spreadAtClose.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />
+            )}
+          </div>
+          <Actions trade={trade} />
+        </div>
       </div>
-      <Actions trade={trade} />
     </div>
   );
 };
@@ -48,28 +54,39 @@ const TradeDetailsPage = () => {
 export default TradeDetailsPage;
 
 const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
-  const calculateChange = (): number | undefined => {
+  const calculateReturn = (): number | undefined => {
     if (!trade || !trade.spreadLive) return undefined;
     const earned = (100 * (trade.spreadAtOpen.price - trade.spreadLive.price)) / trade.spreadAtOpen.collateral;
-    return roundTo(earned);
+    return earned;
   };
-  const currentReturn = calculateChange();
+  const calculateChange = (): number | undefined => {
+    if (!trade || !trade.spreadLive) return undefined;
+    const earned = (trade.spreadLive.price - trade.spreadAtOpen.price) / trade.spreadAtOpen.price;
+    return earned;
+  };
+  const currentReturn = calculateReturn();
+  const currentChange = calculateChange();
 
   return (
-    <Card>
-      <div className="w-full flex items-start justify-between p-6 gap-8">
+    <Card className="w-[276px] shrink-0">
+      <div className="w-full flex items-start justify-between p-6 gap-1">
         <div className="w-full flex flex-col space-y-1.5">
           <CardTitle>
             {trade.spreadAtOpen.underlying.ticker} ${trade.spreadAtOpen.shortLeg.strike} / ${trade.spreadAtOpen.longLeg.strike} x{trade.quantity}
           </CardTitle>
           <CardDescription>
-            {trade.status === 'open' ? `Expires on ${date.format(trade.spreadAtOpen.expiration, 'MMM D, YYYY')}` : trade.dateClosed !== undefined ? `Closed on ${date.format(trade.dateClosed, 'MMM D, YYYY')}` : ''}
+            {trade.status === 'open'
+              ? `Expires on ${date.format(trade.spreadAtOpen.expiration, isThisYear(trade.spreadAtOpen.expiration) ? 'MMM D' : 'MMM D, YYYY')}`
+              : trade.dateClosed !== undefined
+              ? `Closed on ${date.format(trade.dateClosed, isThisYear(trade.dateClosed) ? 'MMM D' : 'MMM D, YYYY')}`
+              : ''}
           </CardDescription>
         </div>
-        <Badge>{trade.status.toUpperCase()}</Badge>
+        <Badge className="-translate-y-0.5">{trade.status.toUpperCase()}</Badge>
       </div>
       <CardContent>
         <div className="w-full flex flex-col gap-1">
+          <DisplayValue label="Change" percent={currentChange} valueClassName={(currentChange ?? 0) === 0 ? 'text-foreground' : (currentChange ?? 0) < 0 ? 'text-primary' : 'text-red-600'} />
           <DisplayValue label="Return" percent={currentReturn} valueClassName={(currentReturn ?? 0) === 0 ? 'text-foreground' : (currentReturn ?? 0) > 0 ? 'text-primary' : 'text-red-600'} />
           <DisplayValue label="Price" dollar={trade.spreadAtClose?.price ?? trade.spreadLive?.price} />
           <DisplayValue label="Open price" dollar={trade.spreadAtOpen.price} />
@@ -132,3 +149,5 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
     </div>
   );
 };
+
+const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();

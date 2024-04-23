@@ -64,7 +64,7 @@ export const DisplayValue = ({ label, date, dollar, raw, percent, valueClassName
         ) : dollar !== undefined ? (
           `$${roundTo(dollar, 2)}`
         ) : percent !== undefined ? (
-          `${Math.round(percent * 100)}%`
+          `${roundTo(percent * 100, 1)}%`
         ) : date !== undefined ? (
           `${dateAndTime.format(date, 'MMMM D, YYYY')}`
         ) : (

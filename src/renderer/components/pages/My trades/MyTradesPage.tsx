@@ -33,12 +33,12 @@ const MyTradesPage = () => {
   function OpenTradeDetails(trade: CallCreditSpreadTrade) {
     window.api.openWindow({
       url: `trade-details?id=${trade.id}`,
-      width: 826,
-      minWidth: 826,
-      maxWidth: 826,
-      height: 482,
-      minHeight: 482,
-      maxHeight: 482,
+      width: 828,
+      minWidth: 828,
+      maxWidth: 828,
+      height: 494,
+      minHeight: 494,
+      maxHeight: 494,
     });
   }
 
@@ -77,7 +77,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Opened" />,
     cell: ({ row }) => {
       const isThisYear = new Date().getFullYear() === row.original.dateOpened.getFullYear();
-      return <span>{date.format(row.original.spreadAtOpen.expiration, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')}</span>;
+      return <span>{date.format(row.original.dateOpened, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')}</span>;
     },
   }),
   columnHelper.accessor((row) => row.underlying.ticker, {
@@ -190,5 +190,5 @@ const getCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
   const openPrice = trade.spreadAtOpen.price;
   const currentPrice = trade.spreadLive?.price;
   if (currentPrice === undefined) return undefined;
-  return roundTo((100 * (currentPrice - openPrice)) / openPrice, 2);
+  return roundTo((100 * (currentPrice - openPrice)) / openPrice, 1);
 };
