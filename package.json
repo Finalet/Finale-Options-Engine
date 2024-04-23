@@ -118,6 +118,7 @@
     "cmdk": "^1.0.0",
     "date-and-time": "^3.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",

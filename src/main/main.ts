@@ -17,6 +17,9 @@ import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
 import './API/App';
 import './API/Spreads';
 import './API/Trades';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class AppUpdater {
   constructor() {

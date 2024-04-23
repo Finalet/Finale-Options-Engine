@@ -9,7 +9,7 @@ import date from 'date-and-time';
 let polygon: IRestClient;
 
 export function ConfigurePolygon() {
-  polygon = restClient('Sh_nXzj6SixRgsLIOdePJoaPwoz7nzHE', undefined, { pagination: true });
+  polygon = restClient(process.env.POLYGON_API_KEY, undefined, { pagination: true });
 }
 
 export async function GetCallOptionChain(stock: string | Stock, expiration: Date | string, strikes?: number[], onlyOTM?: boolean): Promise<OptionChain> {
@@ -62,7 +62,7 @@ export async function GetCallOption(optionTicker: string, underlying: Stock): Pr
 
   // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
   // const polygonOption = polygonResults.results;
-  const response = await fetch(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=Sh_nXzj6SixRgsLIOdePJoaPwoz7nzHE`);
+  const response = await fetch(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`);
   const polygonResults: IOptionsSnapshotContract = response.ok ? await response.json() : undefined;
   const polygonOption = polygonResults.results;
   if (!polygonOption) throw new Error(`Option with ticker ${optionTicker} not found.`);
