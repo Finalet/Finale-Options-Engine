@@ -14,7 +14,7 @@ const MyTradesPage = () => {
   const [openTrades, setOpenTrades] = useState<CallCreditSpreadTrade[]>([]);
   const [closedTrades, setClosedTrades] = useState<CallCreditSpreadTrade[]>([]);
 
-  const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [tab, setTab] = useState<'open' | 'closed'>(myTradesCache.tab);
 
   async function LoadTrades() {
     const trades = await window.api.trades.LoadTrades();
@@ -69,6 +69,10 @@ const MyTradesPage = () => {
   }
 
   useEffect(() => {
+    myTradesCache.tab = tab;
+  }, [tab]);
+
+  useEffect(() => {
     LoadTrades();
   }, []);
 
@@ -78,7 +82,7 @@ const MyTradesPage = () => {
         <CardHeader className="relative">
           <CardTitle>My trades</CardTitle>
           <CardDescription>List of open and closed positions.</CardDescription>
-          <Tabs className="absolute top-6 right-6" onValueChange={(t) => setTab(t as 'open' | 'closed')} defaultValue="open">
+          <Tabs className="absolute top-6 right-6" onValueChange={(t) => setTab(t as 'open' | 'closed')} defaultValue={myTradesCache.tab}>
             <TabsList>
               <TabsTrigger value="open">Open</TabsTrigger>
               <TabsTrigger value="closed">Closed</TabsTrigger>
@@ -107,3 +111,11 @@ const MyTradesPage = () => {
 };
 
 export default MyTradesPage;
+
+interface IMyTradesCache {
+  tab: 'open' | 'closed';
+}
+
+const myTradesCache: IMyTradesCache = {
+  tab: 'open',
+};
