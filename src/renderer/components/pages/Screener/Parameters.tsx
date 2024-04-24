@@ -165,14 +165,14 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
   }, [parameters, values, tickers, expiration, tickerColorDict.current, tickerColorPool.current]);
 
   return (
-    <Card className="w-full h-full flex flex-col overflow-auto">
-      <CardHeader>
-        <CardTitle>Parameters</CardTitle>
-        <CardDescription>Setup parameters for screening options</CardDescription>
-      </CardHeader>
-      <CardContent className="pb-6 h-full flex flex-col gap-2 overflow-auto px-0">
-        <div className="w-full h-full flex flex-col items-start justify-start overflow-auto px-6">
-          <div className="py-2 w-full flex flex-col items-center justify-center gap-4">
+    <div className="w-full h-full flex flex-col gap-3 overflow-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle>Setup</CardTitle>
+          <CardDescription>Required parameters for the screener</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="w-full flex flex-col items-start justify-start gap-4">
             <div className="w-full flex items-center justify-center gap-2">
               <AddTickerButton AddTickers={AddTickers} />
               {tickers.length > 5 && (
@@ -191,42 +191,52 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
                 {tickers.length > 10 && <Badge variant="outline">+{tickers.length - 10}</Badge>}
               </div>
             )}
-          </div>
-          <div className="py-2 w-full flex items-center justify-center gap-4 mb-4">
-            <div className="w-1/2 truncate">
-              <Label>Expiration</Label>
+            <div className="w-full flex items-center justify-center gap-2">
+              <div className="w-1/2 truncate">
+                <Label>Expiration</Label>
+              </div>
+              <DatePickerWithPresets date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
             </div>
-            <DatePickerWithPresets date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
           </div>
-          {processedParameters.map((parameter, index) =>
-            Array.isArray(parameter) ? (
-              <RangeParameterInput
-                key={index}
-                parameters={parameter}
-                values={parameter.map((p) => getValue(p.id))}
-                OnValuesChange={(v) => {
-                  for (let i = 0; i < parameter.length; i++) {
-                    UpdateValue(parameter[i].id, v[i]);
-                  }
-                }}
-                Remove={() => RemoveParameter(parameter)}
-              />
-            ) : (
-              <SingleParameterInput key={index} parameter={parameter} value={getValue(parameter.id)} Remove={() => RemoveParameter(parameter)} OnValueChange={(v) => UpdateValue(parameter.id, v)} />
-            ),
+        </CardContent>
+      </Card>
+      <Card className="w-full h-full flex flex-col overflow-auto">
+        <CardHeader>
+          <CardTitle>Parameters</CardTitle>
+          <CardDescription>Optional screener parameters</CardDescription>
+        </CardHeader>
+        <CardContent className="h-full flex flex-col gap-4 overflow-auto">
+          {processedParameters.length > 0 && (
+            <div className="w-full max-h-full flex flex-col items-start justify-start overflow-auto shrink-0">
+              {processedParameters.map((parameter, index) =>
+                Array.isArray(parameter) ? (
+                  <RangeParameterInput
+                    key={index}
+                    parameters={parameter}
+                    values={parameter.map((p) => getValue(p.id))}
+                    OnValuesChange={(v) => {
+                      for (let i = 0; i < parameter.length; i++) {
+                        UpdateValue(parameter[i].id, v[i]);
+                      }
+                    }}
+                    Remove={() => RemoveParameter(parameter)}
+                  />
+                ) : (
+                  <SingleParameterInput key={index} parameter={parameter} value={getValue(parameter.id)} Remove={() => RemoveParameter(parameter)} OnValueChange={(v) => UpdateValue(parameter.id, v)} />
+                ),
+              )}
+            </div>
           )}
-          <div className={`w-full pt-4`}>
-            <AddParameterButton excludeParameters={parameters} AddParameters={AddParameters} AddPreset={AddPreset} addedParameters={parameters} />
+          <AddParameterButton excludeParameters={parameters} AddParameters={AddParameters} AddPreset={AddPreset} addedParameters={parameters} />
+          <div className="flex justify-end mt-auto">
+            <Button disabled={tickers.length === 0 || !expiration || running} onClick={ClickRun}>
+              {running && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+              {running ? 'Running...' : 'Run'}
+            </Button>
           </div>
-        </div>
-        <div className="flex justify-end mt-auto px-6">
-          <Button disabled={tickers.length === 0 || !expiration || running} onClick={ClickRun}>
-            {running && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-            {running ? 'Running...' : 'Run'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
@@ -252,7 +262,7 @@ const AddTickerButton = ({ AddTickers }: { AddTickers: (ticker: string | string[
     <Popover open={open} onOpenChange={OnOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
-          Add ticker
+          Add tickers
           <PlusIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -391,10 +401,8 @@ const AddParameterButton = ({ addedParameters, excludeParameters, AddParameters,
 const SingleParameterInput = ({ parameter, value, OnValueChange, Remove }: { parameter: Parameter; value: number | undefined; OnValueChange: (v: number | undefined) => void; Remove: () => void }) => {
   return (
     <ContextMenu>
-      <ContextMenuTrigger className="w-full flex items-center justify-center hover:bg-secondary p-2 rounded-lg gap-2">
-        <div className="w-full">
-          <Label>{parameter.name}</Label>
-        </div>
+      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-2 py-2 first:pt-0">
+        <Label className="w-full text-muted-foreground group-hover:text-foreground transition-colors">{parameter.name}</Label>
         <Input
           value={value}
           onChange={(e) => {
@@ -429,8 +437,8 @@ const RangeParameterInput = ({ parameters, values, OnValuesChange, Remove }: { p
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger className="w-full flex items-center justify-center hover:bg-secondary p-2 rounded-lg gap-2">
-        <div className="shrink-0 flex items-center gap-2 mr-2">{parameters[0].group}</div>
+      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-8 py-2 first:pt-0 overflow-y-hidden">
+        <Label className="text-muted-foreground group-hover:text-foreground transition-colors whitespace-nowrap">{parameters[0].group}</Label>
         <RangeSlider
           thumb1Label={`${values[0] ?? parameters[0].defaultValue}${parameters[0].unit === 'percentage' ? '%' : ''}`}
           thumb2Label={`${values[1] ?? parameters[1].defaultValue}${parameters[1].unit === 'percentage' ? '%' : ''}`}
