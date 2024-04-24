@@ -69,6 +69,7 @@ const columns: any = [
   columnHelper.accessor((row) => row.status, {
     id: 'status',
     header: 'Status',
+    size: 100,
     cell: ({ row }) => {
       return <Badge variant={row.original.status === 'closed' ? 'outline' : 'default'}>{row.original.status.toUpperCase()}</Badge>;
     },
@@ -76,22 +77,22 @@ const columns: any = [
   columnHelper.accessor((row) => row.dateOpened, {
     id: 'dateOpened',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Opened" />,
+    maxSize: 130,
     cell: ({ row }) => {
       const isThisYear = new Date().getFullYear() === row.original.dateOpened.getFullYear();
       return <span>{date.format(row.original.dateOpened, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadAtOpen.underlying.ticker, {
-    id: 'ticker',
-    header: 'Ticker',
-  }),
-  columnHelper.accessor((row) => row.spreadAtOpen.shortLeg.strike, {
-    id: 'spread',
-    header: 'Spread',
+    id: 'trade',
+    header: 'Trade',
     cell: ({ row }) => {
       return (
-        <span>
-          {row.original.spreadAtOpen.shortLeg.strike} / {row.original.spreadAtOpen.longLeg.strike}
+        <span className="whitespace-nowrap">
+          {row.original.spreadAtOpen.underlying.ticker}{' '}
+          <span className="text-muted-foreground">
+            {row.original.spreadAtOpen.shortLeg.strike} / {row.original.spreadAtOpen.longLeg.strike}
+          </span>
         </span>
       );
     },
@@ -111,24 +112,18 @@ const columns: any = [
   columnHelper.accessor((row) => row.spreadAtOpen.maxProfit, {
     id: 'credit',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Credit" />,
+    size: 70,
     cell: ({ row }) => {
       return <span>${row.original.credit.toFixed(0)}</span>;
     },
   }),
-  columnHelper.accessor((row) => row.spreadLive?.underlying.price, {
-    id: 'liveStockPrice',
-    header: 'Stock price',
-    cell: ({ row }) => {
-      return row.original.spreadLive === undefined ? <Placeholder width={3} /> : <span>${row.original.spreadLive?.underlying.price.toFixed(2)}</span>;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadLive?.price, {
-    id: 'livePrice',
-    header: 'Live price',
-    cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder width={2} />}</span>;
-    },
-  }),
+  // columnHelper.accessor((row) => row.spreadLive?.underlying.price, {
+  //   id: 'liveStockPrice',
+  //   header: 'Stock price',
+  //   cell: ({ row }) => {
+  //     return row.original.spreadLive === undefined ? <Placeholder width={3} /> : <span>${row.original.spreadLive?.underlying.price.toFixed(2)}</span>;
+  //   },
+  // }),
   columnHelper.accessor((row) => row.spreadAtOpen.expiration, {
     id: 'expiration',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Expiration" />,
@@ -137,9 +132,23 @@ const columns: any = [
       const dte = row.original.spreadLive?.daysToExpiration ?? Math.ceil(date.subtract(row.original.spreadAtOpen.expiration, new Date()).toDays());
       return (
         <span>
-          {date.format(row.original.spreadAtOpen.expiration, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')} ({dte}d)
+          {date.format(row.original.spreadAtOpen.expiration, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')} <span className="text-muted-foreground">({dte}d)</span>
         </span>
       );
+    },
+  }),
+  columnHelper.accessor((row) => row.spreadLive?.price, {
+    id: 'DTS',
+    header: 'DTS',
+    cell: ({ row }) => {
+      return <span>{row.original.spreadLive?.price !== undefined ? `${roundTo(100 * row.original.spreadLive?.shortLeg.distanceToStrike, 1)}%` : <Placeholder width={2} />}</span>;
+    },
+  }),
+  columnHelper.accessor((row) => row.spreadLive?.price, {
+    id: 'livePrice',
+    header: 'Live price',
+    cell: ({ row }) => {
+      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder width={2} />}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.returnAtExpiration, {
