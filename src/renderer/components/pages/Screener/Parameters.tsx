@@ -1,7 +1,7 @@
 import { ChevronDown, PlusIcon } from 'lucide-react';
 import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { allParameters, Parameter, ParameterPreset, parameterPresets } from './ParameterTypes';
 import { Popover, PopoverContent, PopoverTrigger } from '../../shadcn/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '../../shadcn/ui/command';
@@ -16,16 +16,17 @@ import { SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, top100Tickers } from '@/src/main/CallCreditSpreads/Data/Tickers';
 import date from 'date-and-time';
 import { Label } from '../../shadcn/ui/label';
+import { screenerCache } from './ScreenerPage';
 
 const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) => void }) => {
-  const [tickers, setTickers] = useState<string[]>([]);
-  const [expiration, setExpiration] = useState<Date | undefined>(undefined);
+  const [tickers, setTickers] = useState<string[]>(screenerCache.parameters.tickers);
+  const [expiration, setExpiration] = useState<Date | undefined>(screenerCache.parameters.expiration);
 
-  const [parameters, setParameters] = useState<Parameter[]>([]);
-  const [values, setValues] = useState<SpreadParameters>({});
+  const [parameters, setParameters] = useState<Parameter[]>(screenerCache.parameters.parameters);
+  const [values, setValues] = useState<SpreadParameters>(screenerCache.parameters.values);
 
-  const tickerColorDict = useRef<ColorDictionary>({});
-  const tickerColorPool = useRef<string[]>(bgColors.slice());
+  const tickerColorDict = useRef<ColorDictionary>(screenerCache.parameters.colors.dict);
+  const tickerColorPool = useRef<string[]>(screenerCache.parameters.colors.pool);
 
   function AddTickers(ticker: string | string[]) {
     if (Array.isArray(ticker)) {
@@ -153,6 +154,15 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
   const getDte = (to: Date) => {
     return Math.ceil(date.subtract(to, new Date()).toDays());
   };
+
+  useEffect(() => {
+    screenerCache.parameters.parameters = parameters;
+    screenerCache.parameters.values = values;
+    screenerCache.parameters.tickers = tickers;
+    screenerCache.parameters.expiration = expiration;
+    screenerCache.parameters.colors.dict = tickerColorDict.current;
+    screenerCache.parameters.colors.pool = tickerColorPool.current;
+  }, [parameters, values, tickers, expiration, tickerColorDict.current, tickerColorPool.current]);
 
   return (
     <Card className="w-full h-full flex flex-col overflow-auto">

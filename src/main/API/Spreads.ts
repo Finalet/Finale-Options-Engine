@@ -1,6 +1,5 @@
 import { GetSpread, RunScreener, ScreenerResults, SpreadParameters } from '../CallCreditSpreads/Screener';
 import { ipcMain } from 'electron';
-import path from 'path';
 import { DataManager } from '../DataStorage/DataManager';
 import { CallCreditSpread } from '../CallCreditSpreads/Data/Types';
 

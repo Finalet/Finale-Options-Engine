@@ -1,34 +1,59 @@
-import { createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { DataTable } from '../../elements/DataTable/DataTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
-import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
-import { Badge } from '../../shadcn/ui/badge';
 import { CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
-import { Skeleton } from '../../shadcn/ui/skeleton';
-import date from 'date-and-time';
-import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { Button } from '../../shadcn/ui/button';
+import { cn } from '../../shadcn/lib/utils';
+import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
+import { closedColumns, openColumns } from './TradesTableColumns';
 
 const MyTradesPage = () => {
-  const [trades, setTrades] = useState<CallCreditSpreadTrade[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [openTrades, setOpenTrades] = useState<CallCreditSpreadTrade[]>([]);
+  const [closedTrades, setClosedTrades] = useState<CallCreditSpreadTrade[]>([]);
+
+  const [tab, setTab] = useState<'open' | 'closed'>('open');
 
   async function LoadTrades() {
     const trades = await window.api.trades.LoadTrades();
-    setTrades(trades);
-    GetLiveData(trades);
+    const openTrades = trades.filter((t) => t.status === 'open');
+    const closedTrades = trades.filter((t) => t.status === 'closed');
+
+    setOpenTrades(openTrades);
+    setClosedTrades(closedTrades);
+
+    if (openTrades.some((t) => t.spreadLive === undefined)) await GetLiveData(openTrades);
   }
 
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
+    setLoading(true);
     for (const trade of trades) {
       const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
       trade.spreadLive = liveSpread;
-      setTrades((prev) => {
+      setOpenTrades((prev) => {
         const index = prev.findIndex((t) => t.id === trade.id);
         prev[index] = trade;
         return [...prev];
       });
       window.api.trades.CacheTrade(trade);
     }
+    setLoading(false);
+  }
+
+  async function ClearLiveData() {
+    setOpenTrades((prev) => {
+      for (const trade of prev) {
+        trade.spreadLive = undefined;
+      }
+      return [...prev];
+    });
+  }
+
+  async function ReloadLiveData() {
+    ClearLiveData();
+    await GetLiveData(openTrades);
   }
 
   function OpenTradeDetails(trade: CallCreditSpreadTrade) {
@@ -50,12 +75,31 @@ const MyTradesPage = () => {
   return (
     <div className="w-full h-full">
       <Card className="w-full h-full flex flex-col">
-        <CardHeader>
+        <CardHeader className="relative">
           <CardTitle>My trades</CardTitle>
           <CardDescription>List of open and closed positions.</CardDescription>
+          <Tabs className="absolute top-6 right-6" onValueChange={(t) => setTab(t as 'open' | 'closed')} defaultValue="open">
+            <TabsList>
+              <TabsTrigger value="open">Open</TabsTrigger>
+              <TabsTrigger value="closed">Closed</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardHeader>
-        <CardContent className="h-full overflow-auto">
-          <DataTable data={trades} columns={columns} onRowClick={OpenTradeDetails} searchColumnID="ticker" searchPlaceholder="Search ticker" />
+        <CardContent className="flex flex-col h-full overflow-auto">
+          <DataTable
+            data={tab === 'open' ? openTrades : closedTrades}
+            columns={tab === 'open' ? openColumns : closedColumns}
+            onRowClick={OpenTradeDetails}
+            searchColumnID="trade"
+            searchPlaceholder="Search trade"
+            headerButtons={
+              tab === 'open' && (
+                <Button disabled={loading} onClick={ReloadLiveData} variant="outline" size="icon">
+                  <ReloadIcon className={cn(loading && 'animate-spin')} />
+                </Button>
+              )
+            }
+          />
         </CardContent>
       </Card>
     </div>
@@ -63,142 +107,3 @@ const MyTradesPage = () => {
 };
 
 export default MyTradesPage;
-
-const columnHelper = createColumnHelper<CallCreditSpreadTrade>();
-const columns: any = [
-  columnHelper.accessor((row) => row.status, {
-    id: 'status',
-    header: 'Status',
-    size: 100,
-    cell: ({ row }) => {
-      return <Badge variant={row.original.status === 'closed' ? 'outline' : 'default'}>{row.original.status.toUpperCase()}</Badge>;
-    },
-  }),
-  columnHelper.accessor((row) => row.dateOpened, {
-    id: 'dateOpened',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Opened" />,
-    maxSize: 130,
-    cell: ({ row }) => {
-      const isThisYear = new Date().getFullYear() === row.original.dateOpened.getFullYear();
-      return <span>{date.format(row.original.dateOpened, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')}</span>;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadAtOpen.underlying.ticker, {
-    id: 'trade',
-    header: 'Trade',
-    cell: ({ row }) => {
-      return (
-        <span className="whitespace-nowrap">
-          {row.original.spreadAtOpen.underlying.ticker}{' '}
-          <span className="text-muted-foreground">
-            {row.original.spreadAtOpen.shortLeg.strike} / {row.original.spreadAtOpen.longLeg.strike}
-          </span>
-        </span>
-      );
-    },
-  }),
-  columnHelper.accessor((row) => row.quantity, {
-    id: 'quantity',
-    header: 'Qty',
-    size: 70,
-  }),
-  columnHelper.accessor((row) => row.spreadAtOpen.price, {
-    id: 'openPrice',
-    header: 'Open price',
-    cell: ({ row }) => {
-      return <span>${row.original.spreadAtOpen.price}</span>;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadAtOpen.maxProfit, {
-    id: 'credit',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Credit" />,
-    size: 70,
-    cell: ({ row }) => {
-      return <span>${row.original.credit.toFixed(0)}</span>;
-    },
-  }),
-  // columnHelper.accessor((row) => row.spreadLive?.underlying.price, {
-  //   id: 'liveStockPrice',
-  //   header: 'Stock price',
-  //   cell: ({ row }) => {
-  //     return row.original.spreadLive === undefined ? <Placeholder width={3} /> : <span>${row.original.spreadLive?.underlying.price.toFixed(2)}</span>;
-  //   },
-  // }),
-  columnHelper.accessor((row) => row.spreadAtOpen.expiration, {
-    id: 'expiration',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Expiration" />,
-    cell: ({ row }) => {
-      const isThisYear = new Date().getFullYear() === row.original.dateOpened.getFullYear();
-      const dte = row.original.spreadLive?.daysToExpiration ?? Math.ceil(date.subtract(row.original.spreadAtOpen.expiration, new Date()).toDays());
-      return (
-        <span>
-          {date.format(row.original.spreadAtOpen.expiration, isThisYear ? 'MMMM D' : 'MMMM D, YYYY')} <span className="text-muted-foreground">({dte}d)</span>
-        </span>
-      );
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadLive?.price, {
-    id: 'DTS',
-    header: 'DTS',
-    cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `${roundTo(100 * row.original.spreadLive?.shortLeg.distanceToStrike, 1)}%` : <Placeholder width={2} />}</span>;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadLive?.price, {
-    id: 'livePrice',
-    header: 'Live price',
-    cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder width={2} />}</span>;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadLive?.returnAtExpiration, {
-    id: 'change',
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Change" />,
-    cell: ({ row }) => {
-      const currentReturn = getCurrentChange(row.original);
-      if (currentReturn === undefined) return <Placeholder />;
-      return <span className={`${currentReturn > 0 ? 'text-red-600' : currentReturn === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentReturn}%</span>;
-    },
-    sortingFn: (a, b) => {
-      const aReturn = getCurrentChange(a.original);
-      const bReturn = getCurrentChange(b.original);
-      if (aReturn === undefined || bReturn === undefined) return 0;
-      return aReturn - bReturn;
-    },
-  }),
-  columnHelper.accessor((row) => row.spreadLive?.returnAtExpiration, {
-    id: 'return',
-    size: 30,
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
-    cell: ({ row }) => {
-      if (row.original.spreadLive === undefined) return <Placeholder />;
-      const earned = (100 * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.collateral;
-      const returnPercent = roundTo(100 * earned);
-      return <span className={`${returnPercent > 0 ? 'text-primary' : returnPercent === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{returnPercent}%</span>;
-    },
-    sortingFn: (a, b) => {
-      const aReturn = getCurrentChange(a.original);
-      const bReturn = getCurrentChange(b.original);
-      if (aReturn === undefined || bReturn === undefined) return 0;
-      return bReturn - aReturn;
-    },
-  }),
-];
-
-const Placeholder = ({ dynamicWidth, width }: { dynamicWidth?: string; width?: number }) => {
-  return (
-    <Skeleton
-      style={{
-        width: `${width ?? 2.5}rem`,
-      }}
-      className="h-5"
-    />
-  );
-};
-
-const getCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
-  const openPrice = trade.spreadAtOpen.price;
-  const currentPrice = trade.spreadLive?.price;
-  if (currentPrice === undefined) return undefined;
-  return roundTo((100 * (currentPrice - openPrice)) / openPrice, 1);
-};

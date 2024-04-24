@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import SearchParameters, { ColorDictionary } from './Parameters';
 import { DataTable } from '../../elements/DataTable/DataTable';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CallCreditSpread } from '@/src/main/CallCreditSpreads/Data/Types';
 import { Badge } from '../../shadcn/ui/badge';
 import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
@@ -14,14 +14,15 @@ import { ExternalLink } from 'lucide-react';
 import dateAndTime from 'date-and-time';
 import { Separator } from '../../shadcn/ui/separator';
 import { DisplayValue } from '../Spread details/SpreadDetailsPage';
+import { Parameter } from './ParameterTypes';
 
 const ScreenerPage = () => {
-  const [spreads, setSpreads] = useState<CallCreditSpread[]>([]);
-  const [statistics, setStatistics] = useState<ScreenerStatistics | undefined>(undefined);
+  const [spreads, setSpreads] = useState<CallCreditSpread[]>(screenerCache.spreads);
+  const [statistics, setStatistics] = useState<ScreenerStatistics | undefined>(screenerCache.statistics);
 
   const [running, setRunning] = useState<boolean>(false);
 
-  const colorDict = useRef<ColorDictionary>({});
+  const colorDict = useRef<ColorDictionary>(screenerCache.colors);
 
   async function RunScreener(tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) {
     window.api.spreads.ClearCachedSpreads();
@@ -52,6 +53,16 @@ const ScreenerPage = () => {
     }
     setRunning(false);
   }
+
+  function StoreCache() {
+    screenerCache.colors = colorDict.current;
+    screenerCache.spreads = spreads;
+    screenerCache.statistics = statistics;
+  }
+
+  useEffect(() => {
+    if (!running) StoreCache();
+  }, [running]);
 
   return (
     <div className="w-full h-full flex gap-3 select-none">
@@ -138,7 +149,6 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
           searchPlaceholder="Search ticker"
           onRowClick={OpenSpreadDetails}
           onRowContextMenu={(s, e): void => {
-            // Add return type annotation
             if (!parentRef.current) return;
             setPreviewPosition(getPreviewPos(e.clientY, e.clientX));
             setPreviewingSpread(s);
@@ -256,4 +266,36 @@ export const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }
       </CardContent>
     </Card>
   );
+};
+
+interface IScreenerCache {
+  colors: ColorDictionary;
+  spreads: CallCreditSpread[];
+  statistics: ScreenerStatistics | undefined;
+  parameters: {
+    tickers: string[];
+    expiration: Date | undefined;
+    parameters: Parameter[];
+    values: SpreadParameters;
+    colors: {
+      dict: ColorDictionary;
+      pool: string[];
+    };
+  };
+}
+
+export const screenerCache: IScreenerCache = {
+  colors: {},
+  spreads: [],
+  statistics: undefined,
+  parameters: {
+    tickers: [],
+    expiration: undefined,
+    parameters: [],
+    values: {},
+    colors: {
+      dict: {},
+      pool: [],
+    },
+  },
 };

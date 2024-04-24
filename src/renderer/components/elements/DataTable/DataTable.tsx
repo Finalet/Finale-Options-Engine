@@ -10,6 +10,7 @@ import { ContextMenu, ContextMenuTrigger } from '../../shadcn/ui/context-menu';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  headerButtons?: React.ReactNode;
   onRowClick?: (row: TData) => void;
   onRowContextMenu?: (row: TData, event: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => void;
   searchColumnID?: string;
@@ -20,7 +21,7 @@ interface DataTableProps<TData, TValue> {
   };
 }
 
-export function DataTable<TData, TValue>({ columns, data, onRowClick, onRowContextMenu, searchPlaceholder, searchColumnID, defaultSort }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, headerButtons, onRowClick, onRowContextMenu, searchPlaceholder, searchColumnID, defaultSort }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSort ? [{ id: defaultSort.id, desc: defaultSort.dir === 'desc' }] : []);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -57,7 +58,10 @@ export function DataTable<TData, TValue>({ columns, data, onRowClick, onRowConte
         ) : (
           <div />
         )}
-        <DataTableViewOptions table={table} />
+        <div className="flex items-center justify-end gap-2">
+          {headerButtons && headerButtons}
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       <div className="rounded-md border overflow-auto flex flex-col h-full">
         <Table>

@@ -4,6 +4,8 @@ import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Da
 import { nanoid } from 'nanoid';
 
 ipcMain.handle('LoadTrades', async () => {
+  if (DataManager.cachedTrades.length > 0) return DataManager.cachedTrades;
+
   const trades = await DataManager.LoadTrades();
   DataManager.cachedTrades = trades;
   return trades;
