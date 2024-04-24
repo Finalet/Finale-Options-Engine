@@ -22,6 +22,8 @@ const TradeDetailsPage = () => {
 
     const trade = await window.api.trades.getCachedTrade({ tradeID });
     setTrade(trade);
+    if (trade.spreadLive) return;
+
     const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
     setTrade((prev) => {
       if (!prev) return prev;
@@ -112,7 +114,7 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
   }
 
   return (
-    <Card>
+    <Card className="w-[255px]">
       <CardHeader className="relative">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

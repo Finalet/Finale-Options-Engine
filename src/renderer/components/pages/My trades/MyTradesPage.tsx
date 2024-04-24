@@ -59,9 +59,9 @@ const MyTradesPage = () => {
   function OpenTradeDetails(trade: CallCreditSpreadTrade) {
     window.api.app.OpenWindow({
       url: `trade-details?id=${trade.id}`,
-      width: 828,
-      minWidth: 828,
-      maxWidth: 828,
+      width: 840,
+      minWidth: 840,
+      maxWidth: 840,
       height: 494,
       minHeight: 494,
       maxHeight: 494,
