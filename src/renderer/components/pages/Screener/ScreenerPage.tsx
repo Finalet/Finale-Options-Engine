@@ -94,7 +94,7 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
   }, [colors]);
 
   function OpenSpreadDetails(spread: CallCreditSpread) {
-    window.api.app.OpenSpreadDetails({ spread });
+    window.api.app.OpenSpreadDetails(spread);
     setPreviewingSpread(undefined);
   }
 

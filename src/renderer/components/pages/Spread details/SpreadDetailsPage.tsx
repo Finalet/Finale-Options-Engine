@@ -19,18 +19,10 @@ const SpreadDetailsPage = () => {
 
   async function LoadSpread() {
     const transactionID = searchParams.get('transactionID');
-    if (transactionID) {
-      const spread = await window.api.transaction.retrieve<CallCreditSpread>(transactionID);
-      return setSpread(spread);
-    }
-    const ticker = searchParams.get('ticker');
-    const expiration = searchParams.get('expiration');
-    const shortStrike = searchParams.get('shortStrike');
-    const longStrike = searchParams.get('longStrike');
-    if (!ticker || !expiration || !shortStrike || !longStrike) return;
+    if (!transactionID) return;
 
-    const spread = await window.api.spreads.getCachedSpread({ ticker, expiration: new Date(expiration), shortStrike: parseFloat(shortStrike), longStrike: parseFloat(longStrike) });
-    setSpread(spread);
+    const spread = await window.api.transaction.retrieve<CallCreditSpread>(transactionID);
+    return setSpread(spread);
   }
 
   useEffect(() => {

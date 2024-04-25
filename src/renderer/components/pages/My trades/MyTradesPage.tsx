@@ -56,10 +56,6 @@ const MyTradesPage = () => {
     await GetLiveData(openTrades);
   }
 
-  function OpenTradeDetails(trade: CallCreditSpreadTrade) {
-    window.api.app.OpenTradeDetails({ trade });
-  }
-
   useEffect(() => {
     myTradesCache.tab = tab;
   }, [tab]);
@@ -85,7 +81,7 @@ const MyTradesPage = () => {
           <DataTable
             data={tab === 'open' ? openTrades : closedTrades}
             columns={tab === 'open' ? openColumns : closedColumns}
-            onRowClick={OpenTradeDetails}
+            onRowClick={(t) => window.api.app.OpenTradeDetails(t)}
             searchColumnID="trade"
             searchPlaceholder="Search trade"
             headerButtons={

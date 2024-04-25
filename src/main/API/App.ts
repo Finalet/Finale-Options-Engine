@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { resolveHtmlPath } from '../util';
 import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
+import { DataManager } from '../DataStorage/DataManager';
 
 interface OpenWindowArgs {
   url: string;
@@ -53,18 +54,9 @@ function OpenNewWindow({ url, width, minWidth, maxWidth, height, minHeight, maxH
   });
 }
 
-export interface OpenSpreadDetailsArgs {
-  transactionID?: string;
-  spread?: CallCreditSpread;
-}
-
-ipcMain.on('OpenSpreadDetails', (event, { transactionID, spread }: OpenSpreadDetailsArgs) => {
-  const url = transactionID
-    ? `/spread-details?transactionID=${transactionID}`
-    : spread
-    ? `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`
-    : undefined;
-  if (!url) return;
+ipcMain.on('OpenSpreadDetails', (event, spread: CallCreditSpread) => {
+  const transactionID = DataManager.DepositTransaction(spread);
+  const url = `/spread-details?transactionID=${transactionID}`;
 
   OpenNewWindow({
     url,
@@ -77,14 +69,9 @@ ipcMain.on('OpenSpreadDetails', (event, { transactionID, spread }: OpenSpreadDet
   });
 });
 
-export interface OpenTradeDetailsArgs {
-  transactionID?: string;
-  trade?: CallCreditSpreadTrade;
-}
-
-ipcMain.on('OpenTradeDetails', (event, { transactionID, trade }: OpenTradeDetailsArgs) => {
-  const url = transactionID ? `/trade-details?transactionID=${transactionID}` : trade ? `/trade-details?tradeID=${trade.id}` : undefined;
-  if (!url) return;
+ipcMain.on('OpenTradeDetails', (event, trade: CallCreditSpreadTrade) => {
+  const transactionID = DataManager.DepositTransaction(trade);
+  const url = `/trade-details?transactionID=${transactionID}`;
 
   OpenNewWindow({
     url,

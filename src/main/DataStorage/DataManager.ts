@@ -3,10 +3,12 @@ import { CallCreditSpread, CallCreditSpreadTrade, Option, Stock } from '../CallC
 import jsonFile from 'jsonfile';
 import date from 'date-and-time';
 import fs from 'fs';
+import { nanoid } from 'nanoid';
 
 export class DataManager {
   static cachedSpreads: CallCreditSpread[] = [];
   static cachedTrades: CallCreditSpreadTrade[] = [];
+  private static transactions: { [key: string]: any } = {};
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
     const tradesFolderPath = DataManager.getTradesFolderPath();
@@ -62,5 +64,17 @@ export class DataManager {
     this.processSpreadDates(trade.spreadAtOpen);
     if (trade.spreadAtClose) this.processSpreadDates(trade.spreadAtClose);
     if (trade.spreadLive) this.processSpreadDates(trade.spreadLive);
+  }
+
+  static DepositTransaction<T>(object: T): string {
+    const id = nanoid();
+    this.transactions[id] = object;
+    return id;
+  }
+
+  static RetrieveTransaction<T>(id: string): T {
+    const object = this.transactions[id];
+    delete this.transactions[id];
+    return object;
   }
 }

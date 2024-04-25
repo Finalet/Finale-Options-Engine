@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { DisplayValue, StockDetails } from '../Spread details/SpreadDetailsPage';
+import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 import { useEffect, useState } from 'react';
 import { CallCreditSpread, CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
 import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
@@ -9,7 +9,6 @@ import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
 import { Badge } from '../../shadcn/ui/badge';
 import { ExternalLink } from 'lucide-react';
-import { Skeleton } from '../../shadcn/ui/skeleton';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -17,10 +16,9 @@ const TradeDetailsPage = () => {
   const [trade, setTrade] = useState<CallCreditSpreadTrade | undefined>(undefined);
 
   async function LoadTrade() {
-    const tradeID = searchParams.get('tradeID');
-    if (!tradeID) return;
-
-    const trade = await window.api.trades.getCachedTrade({ tradeID });
+    const transactionID = searchParams.get('transactionID');
+    if (!transactionID) return;
+    const trade = await window.api.transaction.retrieve<CallCreditSpreadTrade>(transactionID);
     setTrade(trade);
     if (trade.spreadLive) return;
 
@@ -109,9 +107,9 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 };
 
 const SpreadPreview = ({ title, description, spread }: { title: string; description: string; spread?: CallCreditSpread }) => {
-  async function ExpandSpread(spread: CallCreditSpread) {
-    const transactionID = await window.api.transaction.deposit(spread);
-    window.api.app.OpenSpreadDetails({ transactionID });
+  async function ExpandSpread() {
+    if (!spread) return;
+    window.api.app.OpenSpreadDetails(spread);
   }
 
   return (
@@ -119,7 +117,7 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
       <CardHeader className="relative">
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
-        <Button onClick={() => spread && ExpandSpread(spread)} variant="ghost" className="absolute top-2 right-3 text-muted-foreground/50 p-3">
+        <Button onClick={ExpandSpread} variant="ghost" className="absolute top-2 right-3 text-muted-foreground/50 p-3">
           <ExternalLink className="w-4 h-4" />
         </Button>
       </CardHeader>
