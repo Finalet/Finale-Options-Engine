@@ -205,9 +205,9 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
           <CardTitle>Parameters</CardTitle>
           <CardDescription>Optional screener parameters</CardDescription>
         </CardHeader>
-        <CardContent className="h-full flex flex-col gap-4 overflow-auto">
+        <CardContent className="max-h-full h-full flex flex-col gap-4 overflow-auto">
           {processedParameters.length > 0 && (
-            <div className="w-full max-h-full flex flex-col items-start justify-start overflow-auto shrink-0">
+            <div className="w-full flex flex-col items-start justify-start overflow-auto">
               {processedParameters.map((parameter, index) =>
                 Array.isArray(parameter) ? (
                   <RangeParameterInput
@@ -401,7 +401,7 @@ const AddParameterButton = ({ addedParameters, excludeParameters, AddParameters,
 const SingleParameterInput = ({ parameter, value, OnValueChange, Remove }: { parameter: Parameter; value: number | undefined; OnValueChange: (v: number | undefined) => void; Remove: () => void }) => {
   return (
     <ContextMenu>
-      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-2 py-2 first:pt-0">
+      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-2 py-2 first:pt-0 shrink-0">
         <Label className="w-full text-muted-foreground group-hover:text-foreground transition-colors">{parameter.name}</Label>
         <Input
           value={value}
@@ -437,7 +437,7 @@ const RangeParameterInput = ({ parameters, values, OnValuesChange, Remove }: { p
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-8 py-2 first:pt-0 overflow-y-hidden">
+      <ContextMenuTrigger className="w-full flex items-center justify-center group gap-8 py-2 first:pt-0 overflow-y-hidden shrink-0">
         <Label className="text-muted-foreground group-hover:text-foreground transition-colors whitespace-nowrap">{parameters[0].group}</Label>
         <RangeSlider
           thumb1Label={`${values[0] ?? parameters[0].defaultValue}${parameters[0].unit === 'percentage' ? '%' : ''}`}
