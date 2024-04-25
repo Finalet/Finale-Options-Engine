@@ -11,12 +11,14 @@ import { closedColumns, openColumns } from './TradesTableColumns';
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
 
-  const [openTrades, setOpenTrades] = useState<CallCreditSpreadTrade[]>([]);
-  const [closedTrades, setClosedTrades] = useState<CallCreditSpreadTrade[]>([]);
+  const [openTrades, setOpenTrades] = useState<CallCreditSpreadTrade[]>(myTradesCache.openTrades);
+  const [closedTrades, setClosedTrades] = useState<CallCreditSpreadTrade[]>(myTradesCache.closedTrades);
 
   const [tab, setTab] = useState<'open' | 'closed'>(myTradesCache.tab);
 
   async function LoadTrades() {
+    if (myTradesCache.openTrades.length > 0 || myTradesCache.closedTrades.length > 0) return;
+
     const trades = await window.api.trades.LoadTrades();
     const openTrades = trades.filter((t) => t.status === 'open');
     const closedTrades = trades.filter((t) => t.status === 'closed');
@@ -37,7 +39,6 @@ const MyTradesPage = () => {
         prev[index] = trade;
         return [...prev];
       });
-      window.api.trades.CacheTrade(trade);
     }
     setLoading(false);
   }
@@ -58,7 +59,11 @@ const MyTradesPage = () => {
 
   useEffect(() => {
     myTradesCache.tab = tab;
-  }, [tab]);
+    if (!loading) {
+      myTradesCache.openTrades = openTrades;
+      myTradesCache.closedTrades = closedTrades;
+    }
+  }, [tab, loading]);
 
   useEffect(() => {
     LoadTrades();
@@ -102,8 +107,12 @@ export default MyTradesPage;
 
 interface IMyTradesCache {
   tab: 'open' | 'closed';
+  openTrades: CallCreditSpreadTrade[];
+  closedTrades: CallCreditSpreadTrade[];
 }
 
 const myTradesCache: IMyTradesCache = {
   tab: 'open',
+  openTrades: [],
+  closedTrades: [],
 };

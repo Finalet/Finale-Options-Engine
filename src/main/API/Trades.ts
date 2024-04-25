@@ -4,19 +4,8 @@ import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Da
 import { nanoid } from 'nanoid';
 
 ipcMain.handle('LoadTrades', async () => {
-  if (DataManager.cachedTrades.length > 0) return DataManager.cachedTrades;
-
-  const trades = await DataManager.LoadTrades();
-  DataManager.cachedTrades = trades;
-  return trades;
+  return await DataManager.LoadTrades();
 });
-
-ipcMain.handle('CacheTrade', async (event, trade: CallCreditSpreadTrade) => {
-  const index = DataManager.cachedTrades.findIndex((t) => t.id === trade.id);
-  if (index === -1) DataManager.cachedTrades.push(trade);
-  else DataManager.cachedTrades[index] = trade;
-});
-
 export interface ExecuteTradeArgs {
   spread: CallCreditSpread;
   quantity: number;
@@ -44,13 +33,4 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
   };
   DataManager.SaveNewTrade(trade);
   return spread;
-});
-
-export interface GetCachedTradeArgs {
-  tradeID: string;
-}
-
-ipcMain.handle('getCachedTrade', async (event, { tradeID }: GetCachedTradeArgs): Promise<CallCreditSpreadTrade | undefined> => {
-  const trade = DataManager.cachedTrades.find((t) => t.id === tradeID);
-  return trade;
 });

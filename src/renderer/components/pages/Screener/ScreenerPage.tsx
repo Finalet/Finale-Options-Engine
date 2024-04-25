@@ -25,7 +25,6 @@ const ScreenerPage = () => {
   const colorDict = useRef<ColorDictionary>(screenerCache.colors);
 
   async function RunScreener(tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) {
-    window.api.spreads.ClearCachedSpreads();
     setSpreads([]);
     setStatistics(undefined);
     setRunning(true);

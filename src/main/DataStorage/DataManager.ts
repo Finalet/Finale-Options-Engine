@@ -6,8 +6,6 @@ import fs from 'fs';
 import { nanoid } from 'nanoid';
 
 export class DataManager {
-  static cachedSpreads: CallCreditSpread[] = [];
-  static cachedTrades: CallCreditSpreadTrade[] = [];
   private static transactions: { [key: string]: any } = {};
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
