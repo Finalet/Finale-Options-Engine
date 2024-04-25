@@ -110,8 +110,8 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 
 const SpreadPreview = ({ title, description, spread }: { title: string; description: string; spread?: CallCreditSpread }) => {
   async function ExpandSpread(spread: CallCreditSpread) {
-    const depositID = await window.api.transaction.deposit(spread);
-    window.api.app.OpenSpreadDetails({ depositID });
+    const transactionID = await window.api.transaction.deposit(spread);
+    window.api.app.OpenSpreadDetails({ transactionID });
   }
 
   return (

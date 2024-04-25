@@ -54,13 +54,13 @@ function OpenNewWindow({ url, width, minWidth, maxWidth, height, minHeight, maxH
 }
 
 export interface OpenSpreadDetailsArgs {
-  depositID?: string;
+  transactionID?: string;
   spread?: CallCreditSpread;
 }
 
-ipcMain.on('OpenSpreadDetails', (event, { depositID, spread }: OpenSpreadDetailsArgs) => {
-  const url = depositID
-    ? `/spread-details?depositID=${depositID}`
+ipcMain.on('OpenSpreadDetails', (event, { transactionID, spread }: OpenSpreadDetailsArgs) => {
+  const url = transactionID
+    ? `/spread-details?transactionID=${transactionID}`
     : spread
     ? `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`
     : undefined;
@@ -68,9 +68,9 @@ ipcMain.on('OpenSpreadDetails', (event, { depositID, spread }: OpenSpreadDetails
 
   OpenNewWindow({
     url,
-    width: 966,
-    minWidth: 966,
-    maxWidth: 966,
+    width: 980,
+    minWidth: 980,
+    maxWidth: 980,
     height: 762,
     minHeight: 762,
     maxHeight: 762,
@@ -78,12 +78,12 @@ ipcMain.on('OpenSpreadDetails', (event, { depositID, spread }: OpenSpreadDetails
 });
 
 export interface OpenTradeDetailsArgs {
-  depositID?: string;
+  transactionID?: string;
   trade?: CallCreditSpreadTrade;
 }
 
-ipcMain.on('OpenTradeDetails', (event, { depositID, trade }: OpenTradeDetailsArgs) => {
-  const url = depositID ? `/trade-details?depositID=${depositID}` : trade ? `/trade-details?tradeID=${trade.id}` : undefined;
+ipcMain.on('OpenTradeDetails', (event, { transactionID, trade }: OpenTradeDetailsArgs) => {
+  const url = transactionID ? `/trade-details?transactionID=${transactionID}` : trade ? `/trade-details?tradeID=${trade.id}` : undefined;
   if (!url) return;
 
   OpenNewWindow({

@@ -18,6 +18,11 @@ const SpreadDetailsPage = () => {
   const [spread, setSpread] = useState<CallCreditSpread | undefined>(undefined);
 
   async function LoadSpread() {
+    const transactionID = searchParams.get('transactionID');
+    if (transactionID) {
+      const spread = await window.api.transaction.retrieve<CallCreditSpread>(transactionID);
+      return setSpread(spread);
+    }
     const ticker = searchParams.get('ticker');
     const expiration = searchParams.get('expiration');
     const shortStrike = searchParams.get('shortStrike');
