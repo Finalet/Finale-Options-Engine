@@ -57,15 +57,7 @@ const MyTradesPage = () => {
   }
 
   function OpenTradeDetails(trade: CallCreditSpreadTrade) {
-    window.api.app.OpenWindow({
-      url: `trade-details?id=${trade.id}`,
-      width: 840,
-      minWidth: 840,
-      maxWidth: 840,
-      height: 494,
-      minHeight: 494,
-      maxHeight: 494,
-    });
+    window.api.app.OpenTradeDetails({ trade });
   }
 
   useEffect(() => {

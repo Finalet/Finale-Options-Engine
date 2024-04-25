@@ -17,7 +17,7 @@ const TradeDetailsPage = () => {
   const [trade, setTrade] = useState<CallCreditSpreadTrade | undefined>(undefined);
 
   async function LoadTrade() {
-    const tradeID = searchParams.get('id');
+    const tradeID = searchParams.get('tradeID');
     if (!tradeID) return;
 
     const trade = await window.api.trades.getCachedTrade({ tradeID });
@@ -109,8 +109,9 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 };
 
 const SpreadPreview = ({ title, description, spread }: { title: string; description: string; spread?: CallCreditSpread }) => {
-  function ExpandSpread(spread: CallCreditSpread) {
-    // window.api.openWindow(`spread-details?ticker=${spread.underlying.ticker}&expiration=${date.format(spread.expiration, 'YYYY-MM-DD')}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`);
+  async function ExpandSpread(spread: CallCreditSpread) {
+    const depositID = await window.api.transaction.deposit(spread);
+    window.api.app.OpenSpreadDetails({ depositID });
   }
 
   return (

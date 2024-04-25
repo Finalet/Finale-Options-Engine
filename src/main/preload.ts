@@ -5,7 +5,7 @@ import { ScreenerResults } from './CallCreditSpreads/Screener';
 import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
 import { GetCachedSpread, GetSpreadArgs, RunScreenerResultsArgs } from './API/Spreads';
 import { ExecuteTradeArgs, GetCachedTradeArgs } from './API/Trades';
-import { OpenWindowArgs } from './API/App';
+import { OpenSpreadDetailsArgs, OpenTradeDetailsArgs } from './API/App';
 
 const API = {
   spreads: {
@@ -21,7 +21,12 @@ const API = {
     getCachedTrade: (args: GetCachedTradeArgs): Promise<CallCreditSpreadTrade> => ipcRenderer.invoke('getCachedTrade', args),
   },
   app: {
-    OpenWindow: (args: OpenWindowArgs) => ipcRenderer.send('OpenWindow', args),
+    OpenSpreadDetails: (args: OpenSpreadDetailsArgs) => ipcRenderer.send('OpenSpreadDetails', args),
+    OpenTradeDetails: (args: OpenTradeDetailsArgs) => ipcRenderer.send('OpenTradeDetails', args),
+  },
+  transaction: {
+    deposit: <T>(object: T): Promise<string> => ipcRenderer.invoke('transactionDeposit', object),
+    retrieve: <T>(id: string): Promise<T> => ipcRenderer.invoke('transactionRetrieve', id),
   },
 };
 

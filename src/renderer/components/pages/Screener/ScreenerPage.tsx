@@ -94,15 +94,7 @@ const Results = ({ spreads, colors }: { spreads: CallCreditSpread[]; colors: Col
   }, [colors]);
 
   function OpenSpreadDetails(spread: CallCreditSpread) {
-    window.api.app.OpenWindow({
-      url: `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`,
-      width: 966,
-      minWidth: 966,
-      maxWidth: 966,
-      height: 762,
-      minHeight: 762,
-      maxHeight: 762,
-    });
+    window.api.app.OpenSpreadDetails({ spread });
     setPreviewingSpread(undefined);
   }
 

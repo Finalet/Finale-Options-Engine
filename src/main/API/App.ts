@@ -1,8 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { resolveHtmlPath } from '../util';
+import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
 
-export interface OpenWindowArgs {
+interface OpenWindowArgs {
   url: string;
   width?: number;
   height?: number;
@@ -12,7 +13,7 @@ export interface OpenWindowArgs {
   maxHeight?: number;
 }
 
-ipcMain.on('OpenWindow', (event, { url, width, minWidth, maxWidth, height, minHeight, maxHeight }: OpenWindowArgs) => {
+function OpenNewWindow({ url, width, minWidth, maxWidth, height, minHeight, maxHeight }: OpenWindowArgs) {
   const RESOURCES_PATH = app.isPackaged ? path.join(process.resourcesPath, 'assets') : path.join(__dirname, '../../assets');
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
@@ -49,5 +50,49 @@ ipcMain.on('OpenWindow', (event, { url, width, minWidth, maxWidth, height, minHe
     } else {
       newWindow.show();
     }
+  });
+}
+
+export interface OpenSpreadDetailsArgs {
+  depositID?: string;
+  spread?: CallCreditSpread;
+}
+
+ipcMain.on('OpenSpreadDetails', (event, { depositID, spread }: OpenSpreadDetailsArgs) => {
+  const url = depositID
+    ? `/spread-details?depositID=${depositID}`
+    : spread
+    ? `/spread-details?ticker=${spread.underlying.ticker}&expiration=${spread.expiration}&shortStrike=${spread.shortLeg.strike}&longStrike=${spread.longLeg.strike}`
+    : undefined;
+  if (!url) return;
+
+  OpenNewWindow({
+    url,
+    width: 966,
+    minWidth: 966,
+    maxWidth: 966,
+    height: 762,
+    minHeight: 762,
+    maxHeight: 762,
+  });
+});
+
+export interface OpenTradeDetailsArgs {
+  depositID?: string;
+  trade?: CallCreditSpreadTrade;
+}
+
+ipcMain.on('OpenTradeDetails', (event, { depositID, trade }: OpenTradeDetailsArgs) => {
+  const url = depositID ? `/trade-details?depositID=${depositID}` : trade ? `/trade-details?tradeID=${trade.id}` : undefined;
+  if (!url) return;
+
+  OpenNewWindow({
+    url,
+    width: 840,
+    minWidth: 840,
+    maxWidth: 840,
+    height: 494,
+    minHeight: 494,
+    maxHeight: 494,
   });
 });
