@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
 import { Badge } from '../../shadcn/ui/badge';
-import { ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import CloseTradePopup from './CloseTradePopup';
 import { cn } from '../../shadcn/lib/utils';
 import { StatusBadge } from '../My trades/MyTradesPage';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -148,7 +149,8 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   const [open, setOpen] = useState<boolean>(false);
 
   return (
-    <div className="w-full flex justify-end p-3">
+    <div className="w-full flex justify-end p-3 gap-3">
+      <OpenExternalSource ticker={trade.spreadAtOpen.shortLeg.underlyingTicker} />
       <Dialog onOpenChange={(v) => setOpen(v)}>
         <DialogTrigger asChild>
           <Button>Close trade</Button>
@@ -160,3 +162,27 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 };
 
 const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();
+
+export const OpenExternalSource = ({ ticker }: { ticker: string }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <Button variant="outline">
+          Open <ChevronDown className="ml-2 w-4 h-4 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Robinhood</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/stocks/${ticker}`, '_blank')}>Stock</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/options/chains/${ticker}/builder/short_call_spread`, '_blank')}>Spread builder</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuItem onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${ticker}`, '_blank')}>TradingView</DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};

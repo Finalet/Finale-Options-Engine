@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { resolveHtmlPath } from '../util';
 import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
@@ -41,6 +41,11 @@ function OpenNewWindow({ url, width, minWidth, maxWidth, height, minHeight, maxH
 
   newWindow.setMenu(null);
   newWindow.loadURL(`${resolveHtmlPath(`index.html`)}#${url}`);
+
+  newWindow.webContents.setWindowOpenHandler((edata) => {
+    shell.openExternal(edata.url);
+    return { action: 'deny' };
+  });
 
   newWindow.on('ready-to-show', () => {
     if (!newWindow) {

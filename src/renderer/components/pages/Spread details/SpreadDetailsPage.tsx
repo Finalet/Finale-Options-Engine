@@ -11,6 +11,7 @@ import { Button } from '../../shadcn/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
 import ExecuteTradePopup from './ExecuteTradePopup';
+import { OpenExternalSource } from '../Trade details/TradeDetailsPage';
 
 const SpreadDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -238,7 +239,8 @@ const PriceCharts = ({ prices, setPriceChange, onHover, onHoverEnd, className }:
 const Actions = ({ spread }: { spread: CallCreditSpread }) => {
   const [open, setOpen] = useState<boolean>(false);
   return (
-    <div className="p-3">
+    <div className="w-full flex items-center justify-end p-3 gap-3">
+      <OpenExternalSource ticker={spread.shortLeg.underlyingTicker} />
       <Dialog onOpenChange={(v) => setOpen(v)}>
         <DialogTrigger asChild>
           <Button>Execute trade</Button>
