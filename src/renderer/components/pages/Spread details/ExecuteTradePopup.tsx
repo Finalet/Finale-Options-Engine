@@ -14,7 +14,7 @@ const ExecuteTradePopup = ({ spread, open }: { spread: CallCreditSpread; open: b
   async function ExecuteTrade() {
     const price = parseFloat(typedPrice);
     console.log(price);
-    if (!price) return;
+    if (isNaN(price)) return;
 
     const promise = window.api.trades.ExecuteTrade({ spread, atPrice: price, quantity });
     toast.promise(promise, {

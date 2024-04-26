@@ -5,6 +5,7 @@ import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnH
 import date from 'date-and-time';
 import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
 import { Skeleton } from '../../shadcn/ui/skeleton';
+import { StatusBadge } from './MyTradesPage';
 
 const columnHelper = createColumnHelper<CallCreditSpreadTrade>();
 
@@ -14,7 +15,7 @@ export const openColumns: any = [
     header: 'Status',
     size: 100,
     cell: ({ row }) => {
-      return <Badge variant={row.original.status === 'closed' ? 'outline' : 'default'}>{row.original.status.toUpperCase()}</Badge>;
+      return <StatusBadge status={row.original.status} />;
     },
   }),
   columnHelper.accessor((row) => row.dateOpened, {
@@ -134,7 +135,7 @@ export const closedColumns: any = [
     header: 'Status',
     size: 100,
     cell: ({ row }) => {
-      return <Badge variant={row.original.status === 'closed' ? 'outline' : 'default'}>{row.original.status.toUpperCase()}</Badge>;
+      return <StatusBadge status={row.original.status} />;
     },
   }),
   columnHelper.accessor((row) => row.dateOpened, {

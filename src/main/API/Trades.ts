@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import { DataManager } from '../DataStorage/DataManager';
 import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
 import { nanoid } from 'nanoid';
+import { mainWindow } from '../main';
 
 ipcMain.handle('LoadTrades', async () => {
   return await DataManager.LoadTrades();
@@ -31,6 +32,30 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
     dateOpened: new Date(),
     spreadAtOpen: spread,
   };
-  DataManager.SaveNewTrade(trade);
+  DataManager.SaveTrade(trade);
   return spread;
+});
+
+export interface CloseTradeArgs {
+  trade: CallCreditSpreadTrade;
+  atPrice?: number;
+}
+
+ipcMain.handle('CloseTrade', async (event, { trade, atPrice }: CloseTradeArgs) => {
+  const liveSpread = trade.spreadLive;
+  if (!liveSpread) throw new Error('Trade is not live');
+
+  if (atPrice !== undefined) {
+    liveSpread.price = atPrice;
+    const distance = liveSpread.longLeg.strike - liveSpread.shortLeg.strike;
+    liveSpread.maxProfit = atPrice * 100;
+    liveSpread.maxLoss = distance * 100 - liveSpread.maxProfit;
+  }
+  trade.status = 'closed';
+  delete trade.spreadLive;
+  trade.spreadAtClose = liveSpread;
+  trade.dateClosed = new Date();
+  await DataManager.SaveTrade(trade);
+
+  mainWindow?.webContents.send('tradeClosed', trade);
 });

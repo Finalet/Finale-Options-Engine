@@ -61,7 +61,7 @@ export interface CallCreditSpread {
 
 export interface CallCreditSpreadTrade {
   id: string;
-  status: 'open' | 'closed';
+  status: 'open' | 'closed' | 'expired';
   quantity: number;
   credit: number;
   collateral: number;

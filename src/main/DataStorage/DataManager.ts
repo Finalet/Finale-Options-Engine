@@ -19,11 +19,15 @@ export class DataManager {
       }),
     );
 
-    trades.filter((t) => t !== null).forEach((t) => this.processTradeDates(t as CallCreditSpreadTrade));
-    return trades as CallCreditSpreadTrade[];
+    const filteredTrades = trades.filter((t) => t !== null);
+    filteredTrades.forEach((t) => this.processTradeDates(t as CallCreditSpreadTrade));
+    filteredTrades.forEach((t) => {
+      if (t.status === 'open' && t.spreadAtOpen.expiration.getTime() < new Date().getTime()) t.status = 'expired';
+    });
+    return filteredTrades;
   }
 
-  static async SaveNewTrade(trade: CallCreditSpreadTrade) {
+  static async SaveTrade(trade: CallCreditSpreadTrade) {
     const folderPath = this.getTradesFolderPath();
     const filePath = this.getTradeFilePath(trade);
     fs.mkdirSync(folderPath, { recursive: true });
@@ -59,6 +63,7 @@ export class DataManager {
   }
   private static processTradeDates(trade: CallCreditSpreadTrade) {
     trade.dateOpened = new Date(trade.dateOpened);
+    if (trade.dateClosed) trade.dateClosed = new Date(trade.dateClosed);
     this.processSpreadDates(trade.spreadAtOpen);
     if (trade.spreadAtClose) this.processSpreadDates(trade.spreadAtClose);
     if (trade.spreadLive) this.processSpreadDates(trade.spreadLive);
@@ -72,7 +77,6 @@ export class DataManager {
 
   static RetrieveTransaction<T>(id: string): T {
     const object = this.transactions[id];
-    delete this.transactions[id];
     return object;
   }
 }

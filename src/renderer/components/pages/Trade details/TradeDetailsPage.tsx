@@ -2,13 +2,16 @@ import { useSearchParams } from 'react-router-dom';
 import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 import { useEffect, useState } from 'react';
 import { CallCreditSpread, CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
-import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '../../shadcn/ui/dialog';
 import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
 import { Badge } from '../../shadcn/ui/badge';
 import { ExternalLink } from 'lucide-react';
+import CloseTradePopup from './CloseTradePopup';
+import { cn } from '../../shadcn/lib/utils';
+import { StatusBadge } from '../My trades/MyTradesPage';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -20,7 +23,7 @@ const TradeDetailsPage = () => {
     if (!transactionID) return;
     const trade = await window.api.transaction.retrieve<CallCreditSpreadTrade>(transactionID);
     setTrade(trade);
-    if (trade.spreadLive) return;
+    if (trade.spreadLive || trade.spreadAtClose) return;
 
     const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
     setTrade((prev) => {
@@ -85,7 +88,7 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
               : ''}
           </CardDescription>
         </div>
-        <Badge className="-translate-y-0.5">{trade.status.toUpperCase()}</Badge>
+        <StatusBadge status={trade.status} className="-translate-y-0.5" />
       </div>
       <CardContent>
         <div className="w-full flex flex-col gap-1">
@@ -129,9 +132,9 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
             <DisplayValue label="Profit / Loss" raw={`$${spread.maxProfit.toFixed(0)} / $${spread.maxLoss.toFixed(0)}`} />
             <DisplayValue label="Days to expiration" raw={spread.daysToExpiration} />
             <Separator className="my-2" />
+            <DisplayValue label="Stock price" dollar={spread.underlying.price} />
             <DisplayValue label="Short delta" raw={spread.shortLeg.greeks.delta} />
             <DisplayValue label="Short IV" percent={spread.shortLeg.impliedVolatility} />
-            <DisplayValue label="Stock price" dollar={spread.underlying.price} />
             <DisplayValue label="Distance to strike" percent={spread.shortLeg.distanceToStrike} />
             <DisplayValue label="Distance over Bollinger" percent={spread.shortLeg.distanceOverBollingerBand} />
           </div>
@@ -143,12 +146,14 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
 
 const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   const [open, setOpen] = useState<boolean>(false);
+
   return (
     <div className="w-full flex justify-end p-3">
       <Dialog onOpenChange={(v) => setOpen(v)}>
         <DialogTrigger asChild>
           <Button>Close trade</Button>
         </DialogTrigger>
+        <CloseTradePopup open={open} trade={trade} />
       </Dialog>
     </div>
   );

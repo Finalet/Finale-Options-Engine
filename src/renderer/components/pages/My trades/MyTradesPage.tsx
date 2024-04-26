@@ -7,6 +7,7 @@ import { Button } from '../../shadcn/ui/button';
 import { cn } from '../../shadcn/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
 import { closedColumns, openColumns } from './TradesTableColumns';
+import { Badge } from '../../shadcn/ui/badge';
 
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,15 @@ const MyTradesPage = () => {
 
   const [tab, setTab] = useState<'open' | 'closed'>(myTradesCache.tab);
 
-  async function LoadTrades() {
+  async function LoadTrades(refresh: boolean = false) {
+    if (refresh) {
+      myTradesCache.openTrades = [];
+      myTradesCache.closedTrades = [];
+    }
     if (myTradesCache.openTrades.length > 0 || myTradesCache.closedTrades.length > 0) return;
 
     const trades = await window.api.trades.LoadTrades();
-    const openTrades = trades.filter((t) => t.status === 'open');
+    const openTrades = trades.filter((t) => t.status !== 'closed');
     const closedTrades = trades.filter((t) => t.status === 'closed');
 
     setOpenTrades(openTrades);
@@ -43,19 +48,12 @@ const MyTradesPage = () => {
     setLoading(false);
   }
 
-  async function ClearLiveData() {
-    setOpenTrades((prev) => {
-      for (const trade of prev) {
-        trade.spreadLive = undefined;
-      }
-      return [...prev];
-    });
+  function onTradeClose(closedTrade: CallCreditSpreadTrade) {
+    setClosedTrades((prev) => [closedTrade, ...prev]);
+    setOpenTrades((prev) => prev.filter((t) => t.id !== closedTrade.id));
   }
 
-  async function ReloadLiveData() {
-    ClearLiveData();
-    await GetLiveData(openTrades);
-  }
+  useEffect(() => {}, []);
 
   useEffect(() => {
     myTradesCache.tab = tab;
@@ -67,6 +65,8 @@ const MyTradesPage = () => {
 
   useEffect(() => {
     LoadTrades();
+    const unsub = window.api.trades.onTradeClosed(onTradeClose);
+    return () => unsub();
   }, []);
 
   return (
@@ -91,7 +91,7 @@ const MyTradesPage = () => {
             searchPlaceholder="Search trade"
             headerButtons={
               tab === 'open' && (
-                <Button disabled={loading} onClick={ReloadLiveData} variant="outline" size="icon">
+                <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">
                   <ReloadIcon className={cn(loading && 'animate-spin')} />
                 </Button>
               )
@@ -104,6 +104,14 @@ const MyTradesPage = () => {
 };
 
 export default MyTradesPage;
+
+export const StatusBadge = ({ status, className }: { status: CallCreditSpreadTrade['status']; className?: string }) => {
+  return (
+    <Badge className={className} variant={status === 'open' ? 'default' : status === 'closed' ? 'outline' : 'destructive'}>
+      {status.toUpperCase()}
+    </Badge>
+  );
+};
 
 interface IMyTradesCache {
   tab: 'open' | 'closed';
