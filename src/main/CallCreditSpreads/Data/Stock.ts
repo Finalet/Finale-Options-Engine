@@ -40,19 +40,19 @@ export async function GetStock(ticker: string): Promise<Stock> {
   return stock;
 }
 
-export async function GetStockAtDate(ticker: string, at: Date): Promise<Stock> {
+export async function GetStockOnDate(ticker: string, on: Date): Promise<Stock> {
   yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
 
-  const periodStart = date.addDays(at, -180);
-  const historicalPrices = await getPricesFromTo(ticker, periodStart, at);
+  const periodStart = date.addDays(on, -180);
+  const historicalPrices = await getPricesFromTo(ticker, periodStart, on);
 
-  const priceAt = historicalPrices.find((price) => Math.floor(date.subtract(at, price.date).toDays()) === 0)?.price;
-  if (priceAt === undefined) throw new Error(`Failed to get price at ${at}`);
+  const priceAt = historicalPrices.find((price) => Math.floor(date.subtract(on, price.date).toDays()) === 0)?.price;
+  if (priceAt === undefined) throw new Error(`Failed to get price at ${on}`);
 
   const { lower, middle, upper } = bollingerBands(historicalPrices.map((price) => price.price));
 
   return {
-    dateUpdated: at,
+    dateUpdated: on,
     ticker: ticker,
     name: ticker,
     price: priceAt,

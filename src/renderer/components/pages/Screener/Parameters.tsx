@@ -10,7 +10,7 @@ import { Input } from '../../shadcn/ui/input';
 import { RangeSlider } from '../../elements/RangeSlider';
 import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons';
 import React from 'react';
-import { DatePickerWithPresets } from '../../elements/DatePicker/DatePickerWithPresets';
+import { DatePicker } from '../../elements/DatePicker/DatePicker';
 import { Badge } from '../../shadcn/ui/badge';
 import { SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, top100Tickers } from '@/src/main/CallCreditSpreads/Data/Tickers';
@@ -195,7 +195,7 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
               <div className="w-1/2 truncate">
                 <Label>Expiration</Label>
               </div>
-              <DatePickerWithPresets date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
+              <DatePicker date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
             </div>
           </div>
         </CardContent>

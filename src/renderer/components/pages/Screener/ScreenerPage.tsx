@@ -189,7 +189,7 @@ const columns: any = [
       return <span>${row.original.price}</span>;
     },
   }),
-  columnHelper.accessor((row) => row.shortLeg.greeks.delta, {
+  columnHelper.accessor((row) => row.shortLeg.greeks?.delta, {
     id: 'delta',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Delta" />,
   }),
@@ -246,7 +246,7 @@ export const SpreadPreview = ({ spread, onExpandClick, onMouseLeave, className }
           <DisplayValue label="Profit / Loss" raw={`$${spread.maxProfit.toFixed(0)} / $${spread.maxLoss.toFixed(0)}`} />
           <DisplayValue label="Collateral" dollar={spread.collateral} />
           <Separator className="my-2" />
-          <DisplayValue label="Short delta" raw={spread.shortLeg.greeks.delta} />
+          <DisplayValue label="Short delta" raw={spread.shortLeg.greeks?.delta} />
           <DisplayValue label="Short IV" percent={spread.shortLeg.impliedVolatility} />
           <DisplayValue label="Distance to strike" percent={spread.shortLeg.distanceToStrike} />
           <DisplayValue label="Distance over Bollinger" percent={spread.shortLeg.distanceOverBollingerBand} />

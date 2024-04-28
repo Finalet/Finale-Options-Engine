@@ -48,7 +48,12 @@ const MyTradesPage = () => {
         });
       } catch (error: any) {
         if (trade.spreadAtOpen.expiration < new Date()) {
-          const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
+          const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
+            shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
+            longLegTicker: trade.spreadAtOpen.longLeg.ticker,
+            underlyingTicker: trade.spreadAtOpen.underlying.ticker,
+            onDate: trade.spreadAtOpen.expiration,
+          });
           trade.spreadAtExpiration = spreadAtExpiration;
           trade.status = 'expired';
           setOpenTrades((prev) => {

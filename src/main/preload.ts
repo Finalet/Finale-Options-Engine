@@ -3,14 +3,14 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { ScreenerResults } from './CallCreditSpreads/Screener';
 import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
-import { GetExpiredSpreadArgs, GetSpreadArgs, RunScreenerResultsArgs } from './API/Spreads';
+import { GetSpreadArgs, GetSpreadOnDateArgs, RunScreenerResultsArgs } from './API/Spreads';
 import { CloseTradeArgs, ExecuteTradeArgs } from './API/Trades';
 
 const API = {
   spreads: {
     RunScreener: (args: RunScreenerResultsArgs): Promise<ScreenerResults> => ipcRenderer.invoke('RunScreener', args),
     GetSpread: (args: GetSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('GetSpread', args),
-    GetExpiredSpread: (args: GetExpiredSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('GetExpiredSpread', args),
+    GetSpreadOnDate: (args: GetSpreadOnDateArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('GetSpreadOnDate', args),
   },
   trades: {
     LoadTrades: (): Promise<CallCreditSpreadTrade[]> => ipcRenderer.invoke('LoadTrades'),

@@ -5,16 +5,18 @@ import date from 'date-and-time';
 import { useEffect, useRef, useState } from 'react';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
+import { DatePicker } from '../../elements/DatePicker/DatePicker';
 
 const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: boolean }) => {
   const [typedPrice, setTypedPrice] = useState<string>((trade.spreadLive ?? trade.spreadAtOpen).price.toFixed(2));
+  const [dateClosed, setDateClosed] = useState<Date | undefined>(new Date());
 
   async function CloseTrade() {
     const price = parseFloat(typedPrice);
     console.log(price);
     if (isNaN(price)) return;
 
-    const promise = window.api.trades.CloseTrade({ trade, atPrice: price });
+    const promise = window.api.trades.CloseTrade({ trade, atPrice: price, atDate: dateClosed });
     toast.promise(promise, {
       loading: 'Closing trade...',
       success: () => `${tradeDisplay} closed at $${price}.`,
@@ -49,12 +51,12 @@ const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: 
     <DialogContent className="sm:max-w-[350px] select-none">
       <DialogHeader>
         <DialogTitle>{tradeDisplay}</DialogTitle>
-        <DialogDescription>Confirm paid debit.</DialogDescription>
+        <DialogDescription>Confirm closing details.</DialogDescription>
       </DialogHeader>
-      <div className="w-full flex h-48">
+      <div className="w-full flex h-56">
         <input autoFocus className="absolute opacity-0 pointer-events-none" /> {/* This is a hack to focus the input */}
-        <div className="w-full flex flex-col items-center justify-center gap-4">
-          <div className="w-full flex items-center justify-center text-6xl font-semibold">
+        <div className="w-full flex flex-col items-center justify-center gap-2">
+          <div className="w-full flex items-center justify-center text-6xl font-semibold my-4">
             <span className="invisible absolute" ref={span}>
               {typedPrice}
             </span>
@@ -68,6 +70,8 @@ const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: 
               onChange={(e) => TypePrice(e.currentTarget.value)}
             />
           </div>
+          <div className="text-sm text-muted-foreground">on</div>
+          <DatePicker className="w-1/2" size="sm" date={dateClosed} setDate={setDateClosed} />
         </div>
       </div>
       <DialogFooter>

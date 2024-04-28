@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 import { useEffect, useState } from 'react';
 import { CallCreditSpread, CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
-import { Dialog, DialogContent, DialogTrigger } from '../../shadcn/ui/dialog';
+import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
 import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
@@ -21,33 +21,52 @@ const TradeDetailsPage = () => {
   async function LoadTrade() {
     const transactionID = searchParams.get('transactionID');
     if (!transactionID) return;
+
     const trade = await window.api.transaction.retrieve<CallCreditSpreadTrade>(transactionID);
     setTrade(trade);
-    if (trade.spreadLive || trade.spreadAtClose) return;
+
+    if (trade.spreadLive || trade.spreadAtExpiration || trade.spreadAtClose) return;
 
     try {
-      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-      setTrade((prev) => {
-        if (!prev) return prev;
-        return { ...prev, spreadLive: liveSpread };
-      });
+      LoadLiveSpread(trade);
     } catch (error: any) {
       if (trade.spreadAtOpen.expiration < new Date()) {
-        const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
-        trade.spreadAtExpiration = spreadAtExpiration;
-        trade.status = 'expired';
-        setTrade((prev) => {
-          if (!prev) return prev;
-          return { ...prev, spreadAtExpiration: spreadAtExpiration };
-        });
-        return;
+        return LoadExpiredSpread(trade);
       }
-      toast.error(`Failed to get live data for trade ${trade.id}.`);
+      throw new Error(`Failed to get live data for trade ${trade.id}.`);
     }
   }
 
+  async function LoadLiveSpread(trade: CallCreditSpreadTrade) {
+    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+    setTrade((prev) => {
+      if (!prev) return prev;
+      return { ...prev, spreadLive: liveSpread };
+    });
+  }
+
+  async function LoadExpiredSpread(trade: CallCreditSpreadTrade) {
+    if (trade.spreadAtOpen.expiration >= new Date()) return;
+    const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
+      shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
+      longLegTicker: trade.spreadAtOpen.longLeg.ticker,
+      underlyingTicker: trade.spreadAtOpen.underlying.ticker,
+      onDate: trade.spreadAtOpen.expiration,
+    });
+    trade.spreadAtExpiration = spreadAtExpiration;
+    trade.status = 'expired';
+    setTrade((prev) => {
+      if (!prev) return prev;
+      return { ...prev, spreadAtExpiration: spreadAtExpiration };
+    });
+  }
+
   useEffect(() => {
-    LoadTrade();
+    try {
+      LoadTrade();
+    } catch (error: any) {
+      toast.error(`Failed to load trade. ${error}`);
+    }
   }, []);
 
   if (!trade) return null;

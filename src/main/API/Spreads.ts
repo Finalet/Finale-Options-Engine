@@ -1,9 +1,9 @@
 import { GetSpread, RunScreener, ScreenerResults, SpreadParameters } from '../CallCreditSpreads/Screener';
 import { ipcMain } from 'electron';
-import { Option, CallCreditSpread } from '../CallCreditSpreads/Data/Types';
-import { GetStockAtDate } from '../CallCreditSpreads/Data/Stock';
-import { GetExpiredCallOption } from '../CallCreditSpreads/Data/Option';
+import { CallCreditSpread } from '../CallCreditSpreads/Data/Types';
+import { GetStockOnDate } from '../CallCreditSpreads/Data/Stock';
 import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
+import { GetCallOptionOn } from '../CallCreditSpreads/Data/Option';
 
 export interface RunScreenerResultsArgs {
   ticker: string;
@@ -35,14 +35,16 @@ ipcMain.handle('GetSpread', async (event, { ticker, shortOptionTicker, longOptio
   return spread;
 });
 
-export interface GetExpiredSpreadArgs {
-  shortLegAtOpen: Option;
-  longLegAtOpen: Option;
+export interface GetSpreadOnDateArgs {
+  underlyingTicker: string;
+  shortLegTicker: string;
+  longLegTicker: string;
+  onDate: Date;
 }
 
-ipcMain.handle('GetExpiredSpread', async (event, { shortLegAtOpen, longLegAtOpen }: GetExpiredSpreadArgs): Promise<CallCreditSpread> => {
-  const stock = await GetStockAtDate(shortLegAtOpen.underlyingTicker, shortLegAtOpen.expiration);
+ipcMain.handle('GetSpreadOnDate', async (event, { underlyingTicker, shortLegTicker, longLegTicker, onDate }: GetSpreadOnDateArgs): Promise<CallCreditSpread> => {
+  const stock = await GetStockOnDate(underlyingTicker, onDate);
 
-  const [shortOption, longOption] = await Promise.all([GetExpiredCallOption(shortLegAtOpen, stock), GetExpiredCallOption(longLegAtOpen, stock)]);
+  const [shortOption, longOption] = await Promise.all([GetCallOptionOn(shortLegTicker, stock, onDate), GetCallOptionOn(longLegTicker, stock, onDate)]);
   return BuildCallCreditSpread(stock, shortOption, longOption);
 });

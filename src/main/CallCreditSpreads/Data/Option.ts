@@ -62,11 +62,7 @@ export async function GetCallOption(optionTicker: string, underlying: Stock): Pr
 
   // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
   // const polygonOption = polygonResults.results;
-  const response = await fetch(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`);
-  const polygonResults: IOptionsSnapshotContract = response.ok ? await response.json() : undefined;
-  if (!polygonResults) throw new Error(`[404] Option with ticker ${optionTicker} not found.`);
-  const polygonOption = polygonResults.results;
-  if (!polygonOption) throw new Error(`[404] Option with ticker ${optionTicker} not found.`);
+  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
 
   const yahooOptions = await yahooFinance.options(underlying.ticker, { date: polygonOption.details?.expiration_date, formatted: true });
   const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
@@ -114,19 +110,35 @@ const getDateOnly = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-export async function GetExpiredCallOption(optionAtOpen: Option, underlying: Stock): Promise<Option> {
-  const polygonOption = await polygon.options.dailyOpenClose(`O:${optionAtOpen.ticker}`, date.format(optionAtOpen.expiration, 'YYYY-MM-DD'));
+export async function GetCallOptionOn(optionTicker: string, underlying: Stock, on: Date): Promise<Option> {
+  const polygonOptionQuote = await polygon.options.dailyOpenClose(`O:${optionTicker}`, date.format(on, 'YYYY-MM-DD'));
+  // const polygonOptionResults = await polygon.reference.optionsContract(`O:${optionTicker}`);
+  // const polygonOption = polygonOptionResults.results;
 
-  const distanceToStrike = (optionAtOpen.contractType === 'call' ? optionAtOpen.strike - underlying.price : underlying.price - optionAtOpen.strike) / underlying.price;
-  const distanceOverBollingerBand = (optionAtOpen.strike - underlying.bollingerBands.upperBand) / optionAtOpen.strike;
+  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/reference/options/contracts/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
 
-  const otm = optionAtOpen.contractType === 'call' ? underlying.price < optionAtOpen.strike : underlying.price > optionAtOpen.strike;
+  const strikePrice = polygonOption.strike_price;
+  const polygonExpiration = polygonOption.expiration_date;
+
+  if (strikePrice == undefined || polygonExpiration === undefined) throw new Error(`Could not get option ${optionTicker} on ${on} from Polygon.io.`);
+
+  const [year, month, day] = polygonExpiration.split('-').map(Number);
+  const expiration = new Date(year, month - 1, day, 17, 30, 0);
+
+  const distanceToStrike = (strikePrice - underlying.price) / underlying.price;
+  const distanceOverBollingerBand = (strikePrice - underlying.bollingerBands.upperBand) / strikePrice;
+
+  const otm = underlying.price < strikePrice;
 
   const option: Option = {
-    ...optionAtOpen,
-    dateUpdated: optionAtOpen.expiration,
-    price: otm ? 0 : polygonOption.close ?? 0,
-    volume: polygonOption.volume ?? 0,
+    ticker: optionTicker,
+    contractType: 'call',
+    expiration,
+    underlyingTicker: underlying.ticker,
+    dateUpdated: on,
+    strike: strikePrice,
+    price: otm ? 0 : polygonOptionQuote.close ?? 0,
+    volume: polygonOptionQuote.volume ?? 0,
     distanceToStrike: roundTo(distanceToStrike, 2),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),
     bid: undefined,
@@ -136,3 +148,12 @@ export async function GetExpiredCallOption(optionAtOpen: Option, underlying: Sto
   };
   return option;
 }
+
+const fetchFromPolygon = async <T>(url: string, ticker: string): Promise<T> => {
+  const response = await fetch(url);
+  const polygonOptionResults: any = response.ok ? await response.json() : undefined;
+  if (!polygonOptionResults) throw new Error(`Option with ticker ${ticker} not found.`);
+  const polygonOption = polygonOptionResults.results;
+  if (!polygonOption) throw new Error(`Option with ticker ${ticker} not found.`);
+  return polygonOption;
+};
