@@ -1,6 +1,5 @@
 import { CallCreditSpreadTrade } from '@/src/main/CallCreditSpreads/Data/Types';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Badge } from '../../shadcn/ui/badge';
 import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
 import date from 'date-and-time';
 import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
