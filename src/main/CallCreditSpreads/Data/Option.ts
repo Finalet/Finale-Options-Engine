@@ -120,10 +120,12 @@ export async function GetExpiredCallOption(optionAtOpen: Option, underlying: Sto
   const distanceToStrike = (optionAtOpen.contractType === 'call' ? optionAtOpen.strike - underlying.price : underlying.price - optionAtOpen.strike) / underlying.price;
   const distanceOverBollingerBand = (optionAtOpen.strike - underlying.bollingerBands.upperBand) / optionAtOpen.strike;
 
+  const otm = optionAtOpen.contractType === 'call' ? underlying.price < optionAtOpen.strike : underlying.price > optionAtOpen.strike;
+
   const option: Option = {
     ...optionAtOpen,
     dateUpdated: optionAtOpen.expiration,
-    price: polygonOption.close ?? 0,
+    price: otm ? 0 : polygonOption.close ?? 0,
     volume: polygonOption.volume ?? 0,
     distanceToStrike: roundTo(distanceToStrike, 2),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),

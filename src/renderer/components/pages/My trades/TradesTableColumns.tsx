@@ -84,23 +84,25 @@ export const openColumns: any = [
     id: 'DTS',
     header: 'DTS',
     cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `${roundTo(100 * row.original.spreadLive?.shortLeg.distanceToStrike, 1)}%` : <Placeholder width={2} />}</span>;
+      const dts = row.original.spreadLive?.shortLeg.distanceToStrike ?? row.original.spreadAtExpiration?.shortLeg.distanceToStrike;
+      return <span>{dts !== undefined ? `${roundTo(100 * dts, 1)}%` : <Placeholder width={2} />}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.price, {
     id: 'livePrice',
     header: 'Live price',
     cell: ({ row }) => {
-      return <span>{row.original.spreadLive?.price !== undefined ? `$${row.original.spreadLive?.price}` : <Placeholder width={2} />}</span>;
+      const price = row.original.spreadLive?.price ?? row.original.spreadAtExpiration?.price;
+      return <span>{price !== undefined ? `$${price}` : <Placeholder width={2} />}</span>;
     },
   }),
   columnHelper.accessor((row) => row.spreadLive?.returnAtExpiration, {
     id: 'change',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Change" />,
     cell: ({ row }) => {
-      const currentReturn = getCurrentChange(row.original);
-      if (currentReturn === undefined) return <Placeholder />;
-      return <span className={`${currentReturn > 0 ? 'text-red-600' : currentReturn === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentReturn}%</span>;
+      const currentChange = getCurrentChange(row.original);
+      if (currentChange === undefined) return <Placeholder />;
+      return <span className={`${currentChange > 0 ? 'text-red-600' : currentChange === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentChange}%</span>;
     },
     sortingFn: (a, b) => {
       const aReturn = getCurrentChange(a.original);
@@ -114,14 +116,13 @@ export const openColumns: any = [
     size: 30,
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
-      if (row.original.spreadLive === undefined) return <Placeholder />;
-      const earned = (100 * (row.original.spreadAtOpen.price - row.original.spreadLive.price)) / row.original.spreadAtOpen.collateral;
-      const returnPercent = roundTo(100 * earned);
-      return <span className={`${returnPercent > 0 ? 'text-primary' : returnPercent === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{returnPercent}%</span>;
+      const currentReturn = getCurrentReturn(row.original);
+      if (currentReturn === undefined) return <Placeholder />;
+      return <span className={`${currentReturn > 0 ? 'text-primary' : currentReturn === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{currentReturn}%</span>;
     },
     sortingFn: (a, b) => {
-      const aReturn = getCurrentChange(a.original);
-      const bReturn = getCurrentChange(b.original);
+      const aReturn = getCurrentReturn(a.original);
+      const bReturn = getCurrentReturn(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
       return bReturn - aReturn;
     },
@@ -261,7 +262,15 @@ const Placeholder = ({ dynamicWidth, width }: { dynamicWidth?: string; width?: n
 
 const getCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
   const openPrice = trade.spreadAtOpen.price;
-  const currentPrice = trade.spreadLive?.price;
+  const currentPrice = trade.spreadLive?.price ?? trade.spreadAtExpiration?.price;
   if (currentPrice === undefined) return undefined;
   return roundTo((100 * (currentPrice - openPrice)) / openPrice, 1);
+};
+
+const getCurrentReturn = (trade: CallCreditSpreadTrade): number | undefined => {
+  const openPrice = trade.spreadAtOpen.price;
+  const currentPrice = trade.spreadLive?.price ?? trade.spreadAtExpiration?.price;
+  if (currentPrice === undefined) return undefined;
+  const earned = (100 * (openPrice - currentPrice)) / trade.spreadAtOpen.collateral;
+  return roundTo(100 * earned);
 };
