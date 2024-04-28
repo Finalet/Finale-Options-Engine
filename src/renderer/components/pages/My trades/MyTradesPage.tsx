@@ -39,31 +39,14 @@ const MyTradesPage = () => {
     setLoading(true);
     for (const trade of trades) {
       try {
-        const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-        trade.spreadLive = liveSpread;
+        const updatedTrade = await LoadLiveTrade(trade);
         setOpenTrades((prev) => {
-          const index = prev.findIndex((t) => t.id === trade.id);
-          prev[index] = trade;
+          const index = prev.findIndex((t) => t.id === updatedTrade.id);
+          prev[index] = updatedTrade;
           return [...prev];
         });
       } catch (error: any) {
-        if (trade.spreadAtOpen.expiration < new Date()) {
-          const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
-            shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
-            longLegTicker: trade.spreadAtOpen.longLeg.ticker,
-            underlyingTicker: trade.spreadAtOpen.underlying.ticker,
-            onDate: trade.spreadAtOpen.expiration,
-          });
-          trade.spreadAtExpiration = spreadAtExpiration;
-          trade.status = 'expired';
-          setOpenTrades((prev) => {
-            const index = prev.findIndex((t) => t.id === trade.id);
-            prev[index] = trade;
-            return [...prev];
-          });
-          continue;
-        }
-        toast.error(`Failed to get live data for trade ${trade.id}.`);
+        toast.error(error.message);
       }
     }
     setLoading(false);
@@ -145,3 +128,29 @@ const myTradesCache: IMyTradesCache = {
   openTrades: [],
   closedTrades: [],
 };
+
+export async function LoadLiveTrade(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
+  try {
+    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+    trade.spreadLive = liveSpread;
+    const updatedTrade = { ...trade };
+    return updatedTrade;
+  } catch (error: any) {
+    if (trade.spreadAtOpen.expiration < new Date()) {
+      return await LoadExpiredSpread(trade);
+    }
+    throw new Error(`Failed to get live data trade ${trade.spreadAtOpen.underlying.ticker} ${trade.spreadAtOpen.shortLeg.strike}/${trade.spreadAtOpen.longLeg.strike}.`);
+  }
+}
+async function LoadExpiredSpread(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
+  const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
+    shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
+    longLegTicker: trade.spreadAtOpen.longLeg.ticker,
+    underlyingTicker: trade.spreadAtOpen.underlying.ticker,
+    onDate: trade.spreadAtOpen.expiration,
+  });
+  trade.spreadAtExpiration = spreadAtExpiration;
+  trade.status = 'expired';
+  const updatedTrade: CallCreditSpreadTrade = { ...trade };
+  return updatedTrade;
+}

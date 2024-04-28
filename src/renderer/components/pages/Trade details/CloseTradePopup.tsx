@@ -16,7 +16,7 @@ const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: 
     console.log(price);
     if (isNaN(price)) return;
 
-    const promise = window.api.trades.CloseTrade({ trade, atPrice: price, atDate: dateClosed });
+    const promise = window.api.trades.CloseTrade({ trade, atPrice: price, onDate: dateClosed });
     toast.promise(promise, {
       loading: 'Closing trade...',
       success: () => `${tradeDisplay} closed at $${price}.`,

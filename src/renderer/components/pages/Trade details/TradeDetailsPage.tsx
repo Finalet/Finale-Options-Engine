@@ -7,16 +7,28 @@ import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink, TrafficCone } from 'lucide-react';
 import CloseTradePopup from './CloseTradePopup';
-import { StatusBadge } from '../My trades/MyTradesPage';
+import { LoadLiveTrade, StatusBadge } from '../My trades/MyTradesPage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { Skeleton } from '../../shadcn/ui/skeleton';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
 
   const [trade, setTrade] = useState<CallCreditSpreadTrade | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  async function Init() {
+    setLoading(true);
+    try {
+      await LoadTrade();
+    } catch (error: any) {
+      toast.error(`Failed to load trade. ${error}`);
+    }
+    setLoading(false);
+  }
 
   async function LoadTrade() {
     const transactionID = searchParams.get('transactionID');
@@ -27,46 +39,12 @@ const TradeDetailsPage = () => {
 
     if (trade.spreadLive || trade.spreadAtExpiration || trade.spreadAtClose) return;
 
-    try {
-      LoadLiveSpread(trade);
-    } catch (error: any) {
-      if (trade.spreadAtOpen.expiration < new Date()) {
-        return LoadExpiredSpread(trade);
-      }
-      throw new Error(`Failed to get live data for trade ${trade.id}.`);
-    }
-  }
-
-  async function LoadLiveSpread(trade: CallCreditSpreadTrade) {
-    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-    setTrade((prev) => {
-      if (!prev) return prev;
-      return { ...prev, spreadLive: liveSpread };
-    });
-  }
-
-  async function LoadExpiredSpread(trade: CallCreditSpreadTrade) {
-    if (trade.spreadAtOpen.expiration >= new Date()) return;
-    const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
-      shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
-      longLegTicker: trade.spreadAtOpen.longLeg.ticker,
-      underlyingTicker: trade.spreadAtOpen.underlying.ticker,
-      onDate: trade.spreadAtOpen.expiration,
-    });
-    trade.spreadAtExpiration = spreadAtExpiration;
-    trade.status = 'expired';
-    setTrade((prev) => {
-      if (!prev) return prev;
-      return { ...prev, spreadAtExpiration: spreadAtExpiration };
-    });
+    const updatedTrade = await LoadLiveTrade(trade);
+    setTrade(updatedTrade);
   }
 
   useEffect(() => {
-    try {
-      LoadTrade();
-    } catch (error: any) {
-      toast.error(`Failed to load trade. ${error}`);
-    }
+    Init();
   }, []);
 
   if (!trade) return null;
@@ -78,16 +56,24 @@ const TradeDetailsPage = () => {
         <div className="w-full flex flex-col gap-3">
           <div className="w-full flex items-start justify-start gap-3">
             <SpreadPreview title="Opened" description={`${date.format(trade.spreadAtOpen.dateUpdated, isThisYear(trade.spreadAtOpen.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtOpen} />
-            {trade.spreadLive && <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, isThisYear(trade.spreadLive.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />}
-            {trade.spreadAtExpiration && (
-              <SpreadPreview
-                title="Expired"
-                description={`${date.format(trade.spreadAtExpiration.dateUpdated, isThisYear(trade.spreadAtExpiration.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`}
-                spread={trade.spreadAtExpiration}
-              />
-            )}
-            {trade.spreadAtClose && (
-              <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, isThisYear(trade.spreadAtClose.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />
+            {loading ? (
+              <SpreadPreviewPlaceholder />
+            ) : (
+              <>
+                {trade.spreadLive && (
+                  <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, isThisYear(trade.spreadLive.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />
+                )}
+                {trade.spreadAtExpiration && (
+                  <SpreadPreview
+                    title="Expired"
+                    description={`${date.format(trade.spreadAtExpiration.dateUpdated, isThisYear(trade.spreadAtExpiration.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`}
+                    spread={trade.spreadAtExpiration}
+                  />
+                )}
+                {trade.spreadAtClose && (
+                  <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, isThisYear(trade.spreadAtClose.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />
+                )}
+              </>
             )}
           </div>
           <Actions trade={trade} />
@@ -244,5 +230,69 @@ export const OpenExternalSource = ({ ticker }: { ticker: string }) => {
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const SpreadPreviewPlaceholder = () => {
+  const randomWidth = () => `${(0.2 + Math.random() * 0.5) * 100}%`;
+  return (
+    <Card className="w-[255px] h-[349px]">
+      <CardHeader>
+        <Skeleton className="w-full h-4" />
+        <Skeleton className="w-1/2 h-4" />
+      </CardHeader>
+      <CardContent>
+        <div className="w-full flex flex-col gap-2">
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+          <Skeleton
+            style={{
+              width: randomWidth(),
+            }}
+            className="w-1/2 h-4"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };

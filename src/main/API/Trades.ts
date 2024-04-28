@@ -39,10 +39,10 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
 export interface CloseTradeArgs {
   trade: CallCreditSpreadTrade;
   atPrice?: number;
-  atDate?: Date;
+  onDate?: Date;
 }
 
-ipcMain.handle('CloseTrade', async (event, { trade, atPrice, atDate }: CloseTradeArgs) => {
+ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTradeArgs) => {
   const liveSpread = trade.spreadLive;
   if (!liveSpread) throw new Error('Trade is not live');
 
@@ -55,7 +55,7 @@ ipcMain.handle('CloseTrade', async (event, { trade, atPrice, atDate }: CloseTrad
   trade.status = 'closed';
   delete trade.spreadLive;
   trade.spreadAtClose = liveSpread;
-  trade.dateClosed = atDate ?? new Date();
+  trade.dateClosed = onDate ?? new Date();
   await DataManager.SaveTrade(trade);
 
   mainWindow?.webContents.send('tradeClosed', trade);
