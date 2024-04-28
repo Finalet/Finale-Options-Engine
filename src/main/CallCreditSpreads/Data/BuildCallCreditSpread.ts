@@ -30,8 +30,10 @@ export function BuildCallCreditSpread(underlying: Stock, shortLeg: Option, longL
   const maxLoss = 100 * distance - maxProfit;
   const collateral = distance * 100;
 
+  const dte = Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays());
+
   const spread = {
-    dateUpdated: new Date(),
+    dateUpdated: shortLeg.dateUpdated,
     underlying,
     shortLeg,
     longLeg,
@@ -41,7 +43,7 @@ export function BuildCallCreditSpread(underlying: Stock, shortLeg: Option, longL
     expiration: shortLeg.expiration,
     returnAtExpiration: roundTo(maxProfit / collateral, 2),
     collateral,
-    daysToExpiration: Math.ceil(date.subtract(shortLeg.expiration, new Date()).toDays()),
+    daysToExpiration: dte < 0 ? 0 : dte,
   };
   return spread;
 }

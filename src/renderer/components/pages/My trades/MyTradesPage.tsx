@@ -49,7 +49,7 @@ const MyTradesPage = () => {
       } catch (error: any) {
         if (trade.spreadAtOpen.expiration < new Date()) {
           const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
-          trade.spreadAtClose = spreadAtExpiration;
+          trade.spreadAtExpiration = spreadAtExpiration;
           trade.status = 'expired';
           setOpenTrades((prev) => {
             const index = prev.findIndex((t) => t.id === trade.id);

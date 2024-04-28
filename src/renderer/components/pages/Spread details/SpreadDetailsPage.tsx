@@ -179,10 +179,10 @@ const OptionDetails = ({ title, option }: { title: string; option: Option }) => 
             <Separator orientation="vertical" />
           </div>
           <div className="flex flex-col gap-1">
-            <DisplayValue label="Delta" raw={option.greeks.delta} />
-            <DisplayValue label="Gamma" raw={option.greeks.gamma} />
-            <DisplayValue label="Theta" raw={option.greeks.theta} />
-            <DisplayValue label="Vega" raw={option.greeks.vega} />
+            <DisplayValue label="Delta" raw={option.greeks?.delta} />
+            <DisplayValue label="Gamma" raw={option.greeks?.gamma} />
+            <DisplayValue label="Theta" raw={option.greeks?.theta} />
+            <DisplayValue label="Vega" raw={option.greeks?.vega} />
           </div>
         </div>
       </CardContent>

@@ -1,5 +1,5 @@
 import { BuildCallCreditSpread, BuildCallCreditSpreads } from './Data/BuildCallCreditSpread';
-import { GetCallOption, GetCallOptionChain } from './Data/CallOptionChain';
+import { GetCallOption, GetCallOptionChain } from './Data/Option';
 import { GetStock } from './Data/Stock';
 import { CallCreditSpread, Option, OptionChain } from './Data/Types';
 import { filterByDaysToEarnings, filterByReturn } from './Filters/CallCreditSpreadFilters';

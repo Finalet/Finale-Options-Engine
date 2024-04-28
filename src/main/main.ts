@@ -13,7 +13,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './util';
-import { ConfigurePolygon } from './CallCreditSpreads/Data/CallOptionChain';
+import { ConfigurePolygon } from './CallCreditSpreads/Data/Option';
 import './API/App';
 import './API/Spreads';
 import './API/Trades';

@@ -88,6 +88,7 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
   const distanceOverBollingerBand = (strike - underlying.bollingerBands.upperBand) / strike;
 
   return {
+    dateUpdated: new Date(),
     ticker: polygonOption.details.ticker.split(':')[1],
     underlyingTicker: underlying.ticker,
     contractType: contractType,
@@ -121,19 +122,15 @@ export async function GetExpiredCallOption(optionAtOpen: Option, underlying: Sto
 
   const option: Option = {
     ...optionAtOpen,
-    bid: undefined,
-    ask: undefined,
+    dateUpdated: optionAtOpen.expiration,
     price: polygonOption.close ?? 0,
     volume: polygonOption.volume ?? 0,
-    impliedVolatility: 0,
-    greeks: {
-      delta: 0,
-      gamma: 0,
-      theta: 0,
-      vega: 0,
-    },
     distanceToStrike: roundTo(distanceToStrike, 2),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),
+    bid: undefined,
+    ask: undefined,
+    impliedVolatility: undefined,
+    greeks: undefined,
   };
   return option;
 }

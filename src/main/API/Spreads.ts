@@ -2,7 +2,7 @@ import { GetSpread, RunScreener, ScreenerResults, SpreadParameters } from '../Ca
 import { ipcMain } from 'electron';
 import { Option, CallCreditSpread } from '../CallCreditSpreads/Data/Types';
 import { GetStockAtDate } from '../CallCreditSpreads/Data/Stock';
-import { GetExpiredCallOption } from '../CallCreditSpreads/Data/CallOptionChain';
+import { GetExpiredCallOption } from '../CallCreditSpreads/Data/Option';
 import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
 
 export interface RunScreenerResultsArgs {

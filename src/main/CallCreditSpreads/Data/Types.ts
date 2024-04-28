@@ -1,4 +1,5 @@
 export interface Option {
+  dateUpdated: Date;
   ticker: string;
   underlyingTicker: string;
   contractType: 'call' | 'put';
@@ -7,8 +8,8 @@ export interface Option {
   price: number;
   bid?: number;
   ask?: number;
-  impliedVolatility: number;
-  greeks: {
+  impliedVolatility?: number;
+  greeks?: {
     delta: number;
     gamma: number;
     theta: number;
@@ -69,5 +70,6 @@ export interface CallCreditSpreadTrade {
   dateClosed?: Date;
   spreadAtOpen: CallCreditSpread;
   spreadAtClose?: CallCreditSpread;
+  spreadAtExpiration?: CallCreditSpread;
   spreadLive?: CallCreditSpread;
 }

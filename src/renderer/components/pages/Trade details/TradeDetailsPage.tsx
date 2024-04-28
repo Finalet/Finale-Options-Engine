@@ -34,11 +34,11 @@ const TradeDetailsPage = () => {
     } catch (error: any) {
       if (trade.spreadAtOpen.expiration < new Date()) {
         const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
-        trade.spreadAtClose = spreadAtExpiration;
+        trade.spreadAtExpiration = spreadAtExpiration;
         trade.status = 'expired';
         setTrade((prev) => {
           if (!prev) return prev;
-          return { ...prev, spreadAtClose: spreadAtExpiration };
+          return { ...prev, spreadAtExpiration: spreadAtExpiration };
         });
         return;
       }
@@ -60,6 +60,13 @@ const TradeDetailsPage = () => {
           <div className="w-full flex items-start justify-start gap-3">
             <SpreadPreview title="Opened" description={`${date.format(trade.spreadAtOpen.dateUpdated, isThisYear(trade.spreadAtOpen.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtOpen} />
             {trade.spreadLive && <SpreadPreview title="Live" description={`${date.format(trade.spreadLive.dateUpdated, isThisYear(trade.spreadLive.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadLive} />}
+            {trade.spreadAtExpiration && (
+              <SpreadPreview
+                title="Expired"
+                description={`${date.format(trade.spreadAtExpiration.dateUpdated, isThisYear(trade.spreadAtExpiration.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`}
+                spread={trade.spreadAtExpiration}
+              />
+            )}
             {trade.spreadAtClose && (
               <SpreadPreview title="Closed" description={`${date.format(trade.spreadAtClose.dateUpdated, isThisYear(trade.spreadAtClose.dateUpdated) ? 'MMM D at HH:mm' : 'MMM D, YYYY at HH:mm')}`} spread={trade.spreadAtClose} />
             )}
@@ -75,14 +82,32 @@ export default TradeDetailsPage;
 
 const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   const calculateReturn = (): number | undefined => {
-    if (!trade || !trade.spreadLive) return undefined;
-    const earned = (100 * (trade.spreadAtOpen.price - trade.spreadLive.price)) / trade.spreadAtOpen.collateral;
-    return earned;
+    if (!trade) return undefined;
+    if (trade.spreadLive) {
+      const earned = (100 * (trade.spreadAtOpen.price - trade.spreadLive.price)) / trade.spreadAtOpen.collateral;
+      return earned;
+    } else if (trade.spreadAtExpiration) {
+      const earned = (100 * (trade.spreadAtOpen.price - trade.spreadAtExpiration.price)) / trade.spreadAtOpen.collateral;
+      return earned;
+    } else if (trade.spreadAtClose) {
+      const earned = (100 * (trade.spreadAtOpen.price - trade.spreadAtClose.price)) / trade.spreadAtOpen.collateral;
+      return earned;
+    }
+    return undefined;
   };
   const calculateChange = (): number | undefined => {
-    if (!trade || !trade.spreadLive) return undefined;
-    const earned = (trade.spreadLive.price - trade.spreadAtOpen.price) / trade.spreadAtOpen.price;
-    return earned;
+    if (!trade) return undefined;
+    if (trade.spreadLive) {
+      const earned = (trade.spreadLive.price - trade.spreadAtOpen.price) / trade.spreadAtOpen.price;
+      return earned;
+    } else if (trade.spreadAtExpiration) {
+      const earned = (trade.spreadAtExpiration.price - trade.spreadAtOpen.price) / trade.spreadAtOpen.price;
+      return earned;
+    } else if (trade.spreadAtClose) {
+      const earned = (trade.spreadAtClose.price - trade.spreadAtOpen.price) / trade.spreadAtOpen.price;
+      return earned;
+    }
+    return undefined;
   };
   const currentReturn = calculateReturn();
   const currentChange = calculateChange();
@@ -108,9 +133,12 @@ const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
         <div className="w-full flex flex-col gap-1">
           <DisplayValue label="Change" percent={currentChange} valueClassName={(currentChange ?? 0) === 0 ? 'text-foreground' : (currentChange ?? 0) < 0 ? 'text-primary' : 'text-red-600'} />
           <DisplayValue label="Return" percent={currentReturn} valueClassName={(currentReturn ?? 0) === 0 ? 'text-foreground' : (currentReturn ?? 0) > 0 ? 'text-primary' : 'text-red-600'} />
-          <DisplayValue label="Price" dollar={trade.spreadAtClose?.price ?? trade.spreadLive?.price} />
           <DisplayValue label="Open price" dollar={trade.spreadAtOpen.price} />
-          <DisplayValue label={trade.dateClosed === undefined ? 'Days to expiration' : 'Days held'} raw={trade.spreadLive?.daysToExpiration ?? trade.spreadAtOpen.daysToExpiration} />
+          <DisplayValue label={trade.dateClosed ? 'Closed price' : 'Live price'} dollar={trade.spreadLive?.price ?? trade.spreadAtExpiration?.price ?? trade.spreadAtClose?.price} />
+          <DisplayValue
+            label={trade.dateClosed === undefined ? 'Days to expiration' : 'Days held'}
+            raw={trade.spreadLive?.daysToExpiration ?? trade.spreadAtExpiration?.daysToExpiration ?? (trade.dateClosed && Math.round(date.subtract(trade.dateClosed, trade.dateOpened).toDays())) ?? undefined}
+          />
           <Separator className="my-2" />
           <DisplayValue label="Spread" raw={`$${trade.spreadAtOpen.shortLeg.strike} / $${trade.spreadAtOpen.longLeg.strike}`} />
           <DisplayValue label="Quantity" raw={trade.quantity} />
@@ -147,7 +175,7 @@ const SpreadPreview = ({ title, description, spread }: { title: string; descript
             <DisplayValue label="Days to expiration" raw={spread.daysToExpiration} />
             <Separator className="my-2" />
             <DisplayValue label="Stock price" dollar={spread.underlying.price} />
-            <DisplayValue label="Short delta" raw={spread.shortLeg.greeks.delta} />
+            <DisplayValue label="Short delta" raw={spread.shortLeg.greeks?.delta} />
             <DisplayValue label="Short IV" percent={spread.shortLeg.impliedVolatility} />
             <DisplayValue label="Distance to strike" percent={spread.shortLeg.distanceToStrike} />
             <DisplayValue label="Distance over Bollinger" percent={spread.shortLeg.distanceOverBollingerBand} />
