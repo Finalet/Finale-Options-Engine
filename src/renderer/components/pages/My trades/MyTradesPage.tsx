@@ -8,6 +8,7 @@ import { cn } from '../../shadcn/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
 import { closedColumns, openColumns } from './TradesTableColumns';
 import { Badge } from '../../shadcn/ui/badge';
+import { toast } from 'sonner';
 
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
@@ -37,13 +38,28 @@ const MyTradesPage = () => {
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
     setLoading(true);
     for (const trade of trades) {
-      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-      trade.spreadLive = liveSpread;
-      setOpenTrades((prev) => {
-        const index = prev.findIndex((t) => t.id === trade.id);
-        prev[index] = trade;
-        return [...prev];
-      });
+      try {
+        const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+        trade.spreadLive = liveSpread;
+        setOpenTrades((prev) => {
+          const index = prev.findIndex((t) => t.id === trade.id);
+          prev[index] = trade;
+          return [...prev];
+        });
+      } catch (error: any) {
+        if (trade.spreadAtOpen.expiration < new Date()) {
+          const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
+          trade.spreadAtClose = spreadAtExpiration;
+          trade.status = 'expired';
+          setOpenTrades((prev) => {
+            const index = prev.findIndex((t) => t.id === trade.id);
+            prev[index] = trade;
+            return [...prev];
+          });
+          continue;
+        }
+        toast.error(`Failed to get live data for trade ${trade.id}.`);
+      }
     }
     setLoading(false);
   }

@@ -7,12 +7,11 @@ import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
-import { Badge } from '../../shadcn/ui/badge';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import CloseTradePopup from './CloseTradePopup';
-import { cn } from '../../shadcn/lib/utils';
 import { StatusBadge } from '../My trades/MyTradesPage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -26,11 +25,25 @@ const TradeDetailsPage = () => {
     setTrade(trade);
     if (trade.spreadLive || trade.spreadAtClose) return;
 
-    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
-    setTrade((prev) => {
-      if (!prev) return prev;
-      return { ...prev, spreadLive: liveSpread };
-    });
+    try {
+      const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.shortLeg.underlyingTicker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+      setTrade((prev) => {
+        if (!prev) return prev;
+        return { ...prev, spreadLive: liveSpread };
+      });
+    } catch (error: any) {
+      if (trade.spreadAtOpen.expiration < new Date()) {
+        const spreadAtExpiration = await window.api.spreads.GetExpiredSpread({ shortLegAtOpen: trade.spreadAtOpen.shortLeg, longLegAtOpen: trade.spreadAtOpen.longLeg });
+        trade.spreadAtClose = spreadAtExpiration;
+        trade.status = 'expired';
+        setTrade((prev) => {
+          if (!prev) return prev;
+          return { ...prev, spreadAtClose: spreadAtExpiration };
+        });
+        return;
+      }
+      toast.error(`Failed to get live data for trade ${trade.id}.`);
+    }
   }
 
   useEffect(() => {

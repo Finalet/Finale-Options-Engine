@@ -1,6 +1,9 @@
 import { GetSpread, RunScreener, ScreenerResults, SpreadParameters } from '../CallCreditSpreads/Screener';
 import { ipcMain } from 'electron';
-import { CallCreditSpread } from '../CallCreditSpreads/Data/Types';
+import { Option, CallCreditSpread } from '../CallCreditSpreads/Data/Types';
+import { GetStockAtDate } from '../CallCreditSpreads/Data/Stock';
+import { GetExpiredCallOption } from '../CallCreditSpreads/Data/CallOptionChain';
+import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
 
 export interface RunScreenerResultsArgs {
   ticker: string;
@@ -30,4 +33,16 @@ export interface GetSpreadArgs {
 ipcMain.handle('GetSpread', async (event, { ticker, shortOptionTicker, longOptionTicker }: GetSpreadArgs): Promise<CallCreditSpread> => {
   const spread = await GetSpread(ticker, shortOptionTicker, longOptionTicker);
   return spread;
+});
+
+export interface GetExpiredSpreadArgs {
+  shortLegAtOpen: Option;
+  longLegAtOpen: Option;
+}
+
+ipcMain.handle('GetExpiredSpread', async (event, { shortLegAtOpen, longLegAtOpen }: GetExpiredSpreadArgs): Promise<CallCreditSpread> => {
+  const stock = await GetStockAtDate(shortLegAtOpen.underlyingTicker, shortLegAtOpen.expiration);
+
+  const [shortOption, longOption] = await Promise.all([GetExpiredCallOption(shortLegAtOpen, stock), GetExpiredCallOption(longLegAtOpen, stock)]);
+  return BuildCallCreditSpread(stock, shortOption, longOption);
 });

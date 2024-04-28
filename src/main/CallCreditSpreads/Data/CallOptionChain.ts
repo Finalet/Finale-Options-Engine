@@ -64,8 +64,9 @@ export async function GetCallOption(optionTicker: string, underlying: Stock): Pr
   // const polygonOption = polygonResults.results;
   const response = await fetch(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`);
   const polygonResults: IOptionsSnapshotContract = response.ok ? await response.json() : undefined;
+  if (!polygonResults) throw new Error(`[404] Option with ticker ${optionTicker} not found.`);
   const polygonOption = polygonResults.results;
-  if (!polygonOption) throw new Error(`Option with ticker ${optionTicker} not found.`);
+  if (!polygonOption) throw new Error(`[404] Option with ticker ${optionTicker} not found.`);
 
   const yahooOptions = await yahooFinance.options(underlying.ticker, { date: polygonOption.details?.expiration_date, formatted: true });
   const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
@@ -111,3 +112,28 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
 const getDateOnly = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
+
+export async function GetExpiredCallOption(optionAtOpen: Option, underlying: Stock): Promise<Option> {
+  const polygonOption = await polygon.options.dailyOpenClose(`O:${optionAtOpen.ticker}`, date.format(optionAtOpen.expiration, 'YYYY-MM-DD'));
+
+  const distanceToStrike = (optionAtOpen.contractType === 'call' ? optionAtOpen.strike - underlying.price : underlying.price - optionAtOpen.strike) / underlying.price;
+  const distanceOverBollingerBand = (optionAtOpen.strike - underlying.bollingerBands.upperBand) / optionAtOpen.strike;
+
+  const option: Option = {
+    ...optionAtOpen,
+    bid: undefined,
+    ask: undefined,
+    price: polygonOption.close ?? 0,
+    volume: polygonOption.volume ?? 0,
+    impliedVolatility: 0,
+    greeks: {
+      delta: 0,
+      gamma: 0,
+      theta: 0,
+      vega: 0,
+    },
+    distanceToStrike: roundTo(distanceToStrike, 2),
+    distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),
+  };
+  return option;
+}

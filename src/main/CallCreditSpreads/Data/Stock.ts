@@ -40,11 +40,37 @@ export async function GetStock(ticker: string): Promise<Stock> {
   return stock;
 }
 
-async function lastNDayClosingPrices(ticker: string, days: number): Promise<StockHistoricalPrice[]> {
-  const periodStart = date.addDays(new Date(), -days);
-  const result = await yahooFinance.chart(ticker, { period1: periodStart, interval: '1d' });
+export async function GetStockAtDate(ticker: string, at: Date): Promise<Stock> {
+  yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
 
-  return result.quotes
+  const periodStart = date.addDays(at, -180);
+  const historicalPrices = await getPricesFromTo(ticker, periodStart, at);
+
+  const priceAt = historicalPrices.find((price) => Math.floor(date.subtract(at, price.date).toDays()) === 0)?.price;
+  if (priceAt === undefined) throw new Error(`Failed to get price at ${at}`);
+
+  const { lower, middle, upper } = bollingerBands(historicalPrices.map((price) => price.price));
+
+  return {
+    dateUpdated: at,
+    ticker: ticker,
+    name: ticker,
+    price: priceAt,
+    earningsDate: undefined,
+    exDividendDate: undefined,
+    dividendDate: undefined,
+    bollingerBands: {
+      upperBand: upper[lower.length - 1],
+      middleBand: middle[middle.length - 1],
+      lowerBand: lower[upper.length - 1],
+    },
+    historicalPrices: historicalPrices,
+  };
+}
+
+const getPricesFromTo = async (ticker: string, from: Date, to?: Date): Promise<StockHistoricalPrice[]> => {
+  const results = await yahooFinance.chart(ticker, { period1: from, period2: to, interval: '1d' });
+  return results.quotes
     .map((quote) => {
       return {
         date: quote.date,
@@ -52,4 +78,9 @@ async function lastNDayClosingPrices(ticker: string, days: number): Promise<Stoc
       };
     })
     .filter((price) => price.price !== null) as StockHistoricalPrice[];
-}
+};
+
+const lastNDayClosingPrices = async (ticker: string, days: number): Promise<StockHistoricalPrice[]> => {
+  const periodStart = date.addDays(new Date(), -days);
+  return getPricesFromTo(ticker, periodStart);
+};
