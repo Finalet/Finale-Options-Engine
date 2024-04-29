@@ -39,7 +39,7 @@ const MyTradesPage = () => {
     setLoading(true);
     for (const trade of trades) {
       try {
-        const updatedTrade = await LoadLiveTrade(trade);
+        const updatedTrade = await window.api.trades.LoadLiveTrade(trade);
         setOpenTrades((prev) => {
           const index = prev.findIndex((t) => t.id === updatedTrade.id);
           prev[index] = updatedTrade;
@@ -128,33 +128,3 @@ const myTradesCache: IMyTradesCache = {
   openTrades: [],
   closedTrades: [],
 };
-
-export async function LoadLiveTrade(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
-  try {
-    const liveSpread = await window.api.spreads.GetSpread({
-      underlyingTicker: trade.spreadAtOpen.underlying.ticker,
-      shortLeg: trade.spreadAtOpen.shortLeg,
-      longLeg: trade.spreadAtOpen.longLeg,
-    });
-    trade.spreadLive = liveSpread;
-    const updatedTrade = { ...trade };
-    return updatedTrade;
-  } catch (error: any) {
-    if (trade.spreadAtOpen.expiration < new Date()) {
-      return await LoadExpiredSpread(trade);
-    }
-    throw new Error(`Failed to get live data trade ${trade.spreadAtOpen.underlying.ticker} ${trade.spreadAtOpen.shortLeg.strike}/${trade.spreadAtOpen.longLeg.strike}.`);
-  }
-}
-async function LoadExpiredSpread(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
-  const spreadAtExpiration = await window.api.spreads.GetSpread({
-    shortLeg: trade.spreadAtOpen.shortLeg,
-    longLeg: trade.spreadAtOpen.longLeg,
-    underlyingTicker: trade.spreadAtOpen.underlying.ticker,
-    onDate: trade.spreadAtOpen.expiration,
-  });
-  trade.spreadAtExpiration = spreadAtExpiration;
-  trade.status = 'expired';
-  const updatedTrade: CallCreditSpreadTrade = { ...trade };
-  return updatedTrade;
-}

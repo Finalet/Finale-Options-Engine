@@ -57,15 +57,14 @@ export async function GetCallOptionChain(stock: string | Stock, expiration: Date
   return optionChain;
 }
 
-export async function GetCallOption(option: string | Option, underlying: Stock, on?: Date): Promise<Option> {
-  if (on) return await GetPartialCallOptionOn(option, underlying, on);
+export async function GetExistingCallOption(option: Option, underlying: Stock, on?: Date): Promise<Option> {
+  if (on) return await GetPartialExistingCallOptionOn(option, underlying, on);
 
   yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
-  const optionTicker = typeof option === 'string' ? option : option.ticker;
 
   // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
   // const polygonOption = polygonResults.results;
-  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
+  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${option.ticker}?apiKey=${process.env.POLYGON_API_KEY}`, option.ticker);
 
   const yahooOptions = await yahooFinance.options(underlying.ticker, { date: polygonOption.details?.expiration_date, formatted: true });
   const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
@@ -83,8 +82,8 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
   const contractType = polygonOption.details.contract_type;
   const strike = polygonOption.details.strike_price;
 
-  const distanceToStrike = (contractType === 'call' ? strike - underlying.price : underlying.price - strike) / underlying.price;
-  const distanceOverBollingerBand = (strike - underlying.bollingerBands.upperBand) / strike;
+  const distanceToStrike = getDistanceToStrike(contractType, strike, underlying.price);
+  const distanceOverBollingerBand = getDistanceOverBollingerBand(strike, underlying.bollingerBands.upperBand);
 
   return {
     dateUpdated: new Date(),
@@ -113,38 +112,22 @@ const getDateOnly = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-async function GetPartialCallOptionOn(option: string | Option, underlying: Stock, on: Date): Promise<Option> {
-  const optionTicker = typeof option === 'string' ? option : option.ticker;
-  let strikePrice = typeof option === 'string' ? undefined : option.strike;
-  let expiration = typeof option === 'string' ? undefined : option.expiration;
+async function GetPartialExistingCallOptionOn(option: Option, underlying: Stock, on: Date): Promise<Option> {
+  const polygonOptionQuote = await polygon.options.dailyOpenClose(`O:${option.ticker}`, date.format(on, 'YYYY-MM-DD'));
 
-  if (strikePrice === undefined || expiration === undefined) {
-    // const polygonOptionResults = await polygon.reference.optionsContract(`O:${optionTicker}`);
-    // const polygonOption = polygonOptionResults.results;
-    const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/reference/options/contracts/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
-    if (polygonOption.strike_price == undefined || polygonOption.expiration_date === undefined) throw new Error(`Could not get option ${optionTicker} on ${on} from Polygon.io.`);
+  const distanceToStrike = getDistanceToStrike(option.contractType, option.strike, underlying.price);
+  const distanceOverBollingerBand = getDistanceOverBollingerBand(option.strike, underlying.bollingerBands.upperBand);
 
-    strikePrice = polygonOption.strike_price as number;
-
-    const [year, month, day] = polygonOption.expiration_date.split('-').map(Number);
-    expiration = new Date(year, month - 1, day, 17, 30, 0);
-  }
-
-  const polygonOptionQuote = await polygon.options.dailyOpenClose(`O:${optionTicker}`, date.format(on, 'YYYY-MM-DD'));
-
-  const distanceToStrike = (strikePrice - underlying.price) / underlying.price;
-  const distanceOverBollingerBand = (strikePrice - underlying.bollingerBands.upperBand) / strikePrice;
-
-  const isExpired = expiration <= on;
-  const otm = underlying.price < strikePrice;
+  const isExpired = option.expiration <= on;
+  const otm = underlying.price < option.strike;
 
   const returnOption: Option = {
-    ticker: optionTicker,
+    ticker: option.ticker,
     contractType: 'call',
-    expiration,
+    expiration: option.expiration,
     underlyingTicker: underlying.ticker,
     dateUpdated: on,
-    strike: strikePrice,
+    strike: option.strike,
     price: isExpired && otm ? 0 : polygonOptionQuote.close ?? 0,
     volume: polygonOptionQuote.volume ?? 0,
     distanceToStrike: roundTo(distanceToStrike, 2),
@@ -164,4 +147,11 @@ const fetchFromPolygon = async <T>(url: string, ticker: string): Promise<T> => {
   const polygonOption = polygonOptionResults.results;
   if (!polygonOption) throw new Error(`Option with ticker ${ticker} not found.`);
   return polygonOption;
+};
+
+const getDistanceToStrike = (contractType: string, strike: number, underlyingPrice: number): number => {
+  return (contractType === 'call' ? strike - underlyingPrice : underlyingPrice - strike) / underlyingPrice;
+};
+const getDistanceOverBollingerBand = (strike: number, upperBand: number): number => {
+  return (strike - upperBand) / strike;
 };

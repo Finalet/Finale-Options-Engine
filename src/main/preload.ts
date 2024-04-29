@@ -3,16 +3,16 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { ScreenerResults } from './CallCreditSpreads/Screener';
 import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
-import { GetSpreadArgs, RunScreenerResultsArgs } from './API/Spreads';
+import { RunScreenerResultsArgs } from './API/Spreads';
 import { CloseTradeArgs, ExecuteTradeArgs } from './API/Trades';
 
 const API = {
   spreads: {
     RunScreener: (args: RunScreenerResultsArgs): Promise<ScreenerResults> => ipcRenderer.invoke('RunScreener', args),
-    GetSpread: (args: GetSpreadArgs): Promise<CallCreditSpread> => ipcRenderer.invoke('GetSpread', args),
   },
   trades: {
     LoadTrades: (): Promise<CallCreditSpreadTrade[]> => ipcRenderer.invoke('LoadTrades'),
+    LoadLiveTrade: (trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> => ipcRenderer.invoke('LoadLiveTrade', trade),
     ExecuteTrade: (args: ExecuteTradeArgs) => ipcRenderer.invoke('ExecuteTrade', args),
     CloseTrade: (args: CloseTradeArgs) => ipcRenderer.invoke('CloseTrade', args),
     onTradeClosed: (callback: (trade: CallCreditSpreadTrade) => void) => {

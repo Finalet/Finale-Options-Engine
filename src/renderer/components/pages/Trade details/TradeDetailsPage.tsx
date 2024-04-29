@@ -7,9 +7,9 @@ import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
-import { ChevronDown, ExternalLink, TrafficCone } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import CloseTradePopup from './CloseTradePopup';
-import { LoadLiveTrade, StatusBadge } from '../My trades/MyTradesPage';
+import { StatusBadge } from '../My trades/MyTradesPage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { Skeleton } from '../../shadcn/ui/skeleton';
@@ -39,7 +39,7 @@ const TradeDetailsPage = () => {
 
     if (trade.spreadLive || trade.spreadAtExpiration || trade.spreadAtClose) return;
 
-    const updatedTrade = await LoadLiveTrade(trade);
+    const updatedTrade = await window.api.trades.LoadLiveTrade(trade);
     setTrade(updatedTrade);
   }
 

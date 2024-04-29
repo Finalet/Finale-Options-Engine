@@ -1,9 +1,5 @@
 import { RunScreener, ScreenerResults, SpreadParameters } from '../CallCreditSpreads/Screener';
 import { ipcMain } from 'electron';
-import { CallCreditSpread, Option } from '../CallCreditSpreads/Data/Types';
-import { GetStock } from '../CallCreditSpreads/Data/Stock';
-import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
-import { GetCallOption } from '../CallCreditSpreads/Data/Option';
 
 export interface RunScreenerResultsArgs {
   ticker: string;
@@ -22,17 +18,4 @@ ipcMain.handle('RunScreener', async (event, { ticker, expiration, params }: RunS
     if (error.name === 'FailedYahooValidationError') throw new Error(`[FAILED-YAHOO-VALIDATION]`);
     throw new Error(error);
   }
-});
-
-export interface GetSpreadArgs {
-  underlyingTicker: string;
-  shortLeg: string | Option;
-  longLeg: string | Option;
-  onDate?: Date;
-}
-
-ipcMain.handle('GetSpread', async (event, { underlyingTicker, shortLeg, longLeg, onDate }: GetSpreadArgs): Promise<CallCreditSpread> => {
-  const stock = await GetStock(underlyingTicker, onDate);
-  const [shortOption, longOption] = await Promise.all([GetCallOption(shortLeg, stock, onDate), GetCallOption(longLeg, stock, onDate)]);
-  return BuildCallCreditSpread(stock, shortOption, longOption);
 });
