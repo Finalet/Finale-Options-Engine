@@ -17,8 +17,7 @@ export interface ExecuteTradeArgs {
 }
 
 ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: ExecuteTradeArgs) => {
-  const underlying = spread.underlying;
-  delete underlying.historicalPrices;
+  spread.underlying.historicalPrices = spread.underlying.historicalPrices?.slice(-90);
 
   if (atPrice !== undefined) {
     spread.price = atPrice;
@@ -48,6 +47,8 @@ export interface CloseTradeArgs {
 ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTradeArgs) => {
   const liveSpread = trade.spreadLive;
   if (!liveSpread) throw new Error('Trade is not live');
+
+  liveSpread.underlying.historicalPrices = liveSpread.underlying.historicalPrices?.slice(-90);
 
   if (atPrice !== undefined) {
     liveSpread.price = atPrice;
