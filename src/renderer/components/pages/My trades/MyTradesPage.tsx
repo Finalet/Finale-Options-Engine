@@ -144,8 +144,8 @@ export async function LoadLiveTrade(trade: CallCreditSpreadTrade): Promise<CallC
 }
 async function LoadExpiredSpread(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
   const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
-    shortLegTicker: trade.spreadAtOpen.shortLeg.ticker,
-    longLegTicker: trade.spreadAtOpen.longLeg.ticker,
+    shortLeg: trade.spreadAtOpen.shortLeg,
+    longLeg: trade.spreadAtOpen.longLeg,
     underlyingTicker: trade.spreadAtOpen.underlying.ticker,
     onDate: trade.spreadAtOpen.expiration,
   });

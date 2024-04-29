@@ -110,27 +110,31 @@ const getDateOnly = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-export async function GetCallOptionOn(optionTicker: string, underlying: Stock, on: Date): Promise<Option> {
+export async function GetCallOptionOn(option: string | Option, underlying: Stock, on: Date): Promise<Option> {
+  const optionTicker = typeof option === 'string' ? option : option.ticker;
+  let strikePrice = typeof option === 'string' ? undefined : option.strike;
+  let expiration = typeof option === 'string' ? undefined : option.expiration;
+
+  if (strikePrice === undefined || expiration === undefined) {
+    // const polygonOptionResults = await polygon.reference.optionsContract(`O:${optionTicker}`);
+    // const polygonOption = polygonOptionResults.results;
+    const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/reference/options/contracts/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
+    if (polygonOption.strike_price == undefined || polygonOption.expiration_date === undefined) throw new Error(`Could not get option ${optionTicker} on ${on} from Polygon.io.`);
+
+    strikePrice = polygonOption.strike_price as number;
+
+    const [year, month, day] = polygonOption.expiration_date.split('-').map(Number);
+    expiration = new Date(year, month - 1, day, 17, 30, 0);
+  }
+
   const polygonOptionQuote = await polygon.options.dailyOpenClose(`O:${optionTicker}`, date.format(on, 'YYYY-MM-DD'));
-  // const polygonOptionResults = await polygon.reference.optionsContract(`O:${optionTicker}`);
-  // const polygonOption = polygonOptionResults.results;
-
-  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/reference/options/contracts/O:${optionTicker}?apiKey=${process.env.POLYGON_API_KEY}`, optionTicker);
-
-  const strikePrice = polygonOption.strike_price;
-  const polygonExpiration = polygonOption.expiration_date;
-
-  if (strikePrice == undefined || polygonExpiration === undefined) throw new Error(`Could not get option ${optionTicker} on ${on} from Polygon.io.`);
-
-  const [year, month, day] = polygonExpiration.split('-').map(Number);
-  const expiration = new Date(year, month - 1, day, 17, 30, 0);
 
   const distanceToStrike = (strikePrice - underlying.price) / underlying.price;
   const distanceOverBollingerBand = (strikePrice - underlying.bollingerBands.upperBand) / strikePrice;
 
   const otm = underlying.price < strikePrice;
 
-  const option: Option = {
+  const returnOption: Option = {
     ticker: optionTicker,
     contractType: 'call',
     expiration,
@@ -146,7 +150,7 @@ export async function GetCallOptionOn(optionTicker: string, underlying: Stock, o
     impliedVolatility: undefined,
     greeks: undefined,
   };
-  return option;
+  return returnOption;
 }
 
 const fetchFromPolygon = async <T>(url: string, ticker: string): Promise<T> => {
