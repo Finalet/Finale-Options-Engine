@@ -68,7 +68,7 @@ ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTrad
   trade.status = 'closed';
   trade.spreadAtClose = spreadAtClose;
   trade.dateClosed = onDate;
-  await DataManager.SaveTrade(trade);
+  (trade.debit = spreadAtClose.price * 100 * trade.quantity), await DataManager.SaveTrade(trade);
 
   mainWindow?.webContents.send('tradeClosed', trade);
 });

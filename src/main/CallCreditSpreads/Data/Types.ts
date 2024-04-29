@@ -68,6 +68,7 @@ export interface CallCreditSpreadTrade {
   collateral: number;
   dateOpened: Date;
   dateClosed?: Date;
+  debit?: number;
   spreadAtOpen: CallCreditSpread;
   spreadAtClose?: CallCreditSpread;
   spreadAtExpiration?: CallCreditSpread;
