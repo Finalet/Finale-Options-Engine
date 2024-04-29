@@ -8,15 +8,16 @@ import { toast } from 'sonner';
 import { DatePicker } from '../../elements/DatePicker/DatePicker';
 
 const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: boolean }) => {
-  const [typedPrice, setTypedPrice] = useState<string>((trade.spreadLive ?? trade.spreadAtOpen).price.toFixed(2));
-  const [dateClosed, setDateClosed] = useState<Date | undefined>(new Date());
+  const [typedPrice, setTypedPrice] = useState<string>((trade.spreadLive ?? trade.spreadAtExpiration ?? trade.spreadAtOpen).price.toFixed(2));
+  const [dateClosed, setDateClosed] = useState<Date | undefined>(trade.spreadAtOpen.expiration > new Date() ? new Date() : trade.spreadAtOpen.expiration);
 
   async function CloseTrade() {
     const price = parseFloat(typedPrice);
     console.log(price);
     if (isNaN(price)) return;
 
-    const promise = window.api.trades.CloseTrade({ trade, atPrice: price, onDate: dateClosed });
+    const closedOn = dateClosed ? new Date(dateClosed.getFullYear(), dateClosed.getMonth(), dateClosed.getDate(), 17, 30) : trade.spreadAtOpen.expiration;
+    const promise = window.api.trades.CloseTrade({ trade, atPrice: price, onDate: closedOn });
     toast.promise(promise, {
       loading: 'Closing trade...',
       success: () => `${tradeDisplay} closed at $${price}.`,
@@ -43,7 +44,8 @@ const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: 
 
   useEffect(() => {
     if (open) {
-      setTypedPrice((trade.spreadLive ?? trade.spreadAtOpen).price.toFixed(2));
+      setTypedPrice((trade.spreadLive ?? trade.spreadAtExpiration ?? trade.spreadAtOpen).price.toFixed(2));
+      setDateClosed(trade.spreadAtOpen.expiration > new Date() ? new Date() : trade.spreadAtOpen.expiration);
     }
   }, [open]);
 

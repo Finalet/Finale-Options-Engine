@@ -6,6 +6,7 @@ import { mainWindow } from '../main';
 import { GetStock } from '../CallCreditSpreads/Data/Stock';
 import { GetExistingCallOption } from '../CallCreditSpreads/Data/Option';
 import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
+import date from 'date-and-time';
 
 ipcMain.handle('LoadTrades', async () => {
   return await DataManager.LoadTrades();
@@ -40,26 +41,33 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
 
 export interface CloseTradeArgs {
   trade: CallCreditSpreadTrade;
-  atPrice?: number;
-  onDate?: Date;
+  atPrice: number;
+  onDate: Date;
 }
 
 ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTradeArgs) => {
-  const liveSpread = trade.spreadLive;
-  if (!liveSpread) throw new Error('Trade is not live');
-
-  liveSpread.underlying.historicalPrices = liveSpread.underlying.historicalPrices?.slice(-90);
-
-  if (atPrice !== undefined) {
-    liveSpread.price = atPrice;
-    const distance = liveSpread.longLeg.strike - liveSpread.shortLeg.strike;
-    liveSpread.maxProfit = atPrice * 100;
-    liveSpread.maxLoss = distance * 100 - liveSpread.maxProfit;
+  let spreadAtClose;
+  if (trade.spreadLive && Math.floor(date.subtract(new Date(), onDate).toDays()) === 0) {
+    spreadAtClose = trade.spreadLive;
+  } else if (trade.spreadAtExpiration && Math.floor(date.subtract(trade.spreadAtOpen.expiration, onDate).toDays()) === 0) {
+    spreadAtClose = trade.spreadAtExpiration;
+  } else {
+    const spreadOnDate = await GetExistingSpread(trade.spreadAtOpen.underlying.ticker, trade.spreadAtOpen.shortLeg, trade.spreadAtOpen.longLeg, onDate);
+    spreadAtClose = spreadOnDate;
   }
-  trade.status = 'closed';
+
+  delete trade.spreadAtExpiration;
   delete trade.spreadLive;
-  trade.spreadAtClose = liveSpread;
-  trade.dateClosed = onDate ?? new Date();
+
+  spreadAtClose.underlying.historicalPrices = spreadAtClose.underlying.historicalPrices?.slice(-90);
+  spreadAtClose.price = atPrice;
+  const distance = spreadAtClose.longLeg.strike - spreadAtClose.shortLeg.strike;
+  spreadAtClose.maxProfit = atPrice * 100;
+  spreadAtClose.maxLoss = distance * 100 - spreadAtClose.maxProfit;
+
+  trade.status = 'closed';
+  trade.spreadAtClose = spreadAtClose;
+  trade.dateClosed = onDate;
   await DataManager.SaveTrade(trade);
 
   mainWindow?.webContents.send('tradeClosed', trade);
