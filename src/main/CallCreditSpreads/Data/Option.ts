@@ -57,8 +57,11 @@ export async function GetCallOptionChain(stock: string | Stock, expiration: Date
   return optionChain;
 }
 
-export async function GetCallOption(optionTicker: string, underlying: Stock): Promise<Option> {
+export async function GetCallOption(option: string | Option, underlying: Stock, on?: Date): Promise<Option> {
+  if (on) return await GetPartialCallOptionOn(option, underlying, on);
+
   yahooFinance.setGlobalConfig({ validation: { logErrors: false } });
+  const optionTicker = typeof option === 'string' ? option : option.ticker;
 
   // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
   // const polygonOption = polygonResults.results;
@@ -110,7 +113,7 @@ const getDateOnly = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-export async function GetCallOptionOn(option: string | Option, underlying: Stock, on: Date): Promise<Option> {
+async function GetPartialCallOptionOn(option: string | Option, underlying: Stock, on: Date): Promise<Option> {
   const optionTicker = typeof option === 'string' ? option : option.ticker;
   let strikePrice = typeof option === 'string' ? undefined : option.strike;
   let expiration = typeof option === 'string' ? undefined : option.expiration;
@@ -132,6 +135,7 @@ export async function GetCallOptionOn(option: string | Option, underlying: Stock
   const distanceToStrike = (strikePrice - underlying.price) / underlying.price;
   const distanceOverBollingerBand = (strikePrice - underlying.bollingerBands.upperBand) / strikePrice;
 
+  const isExpired = expiration <= on;
   const otm = underlying.price < strikePrice;
 
   const returnOption: Option = {
@@ -141,7 +145,7 @@ export async function GetCallOptionOn(option: string | Option, underlying: Stock
     underlyingTicker: underlying.ticker,
     dateUpdated: on,
     strike: strikePrice,
-    price: otm ? 0 : polygonOptionQuote.close ?? 0,
+    price: isExpired && otm ? 0 : polygonOptionQuote.close ?? 0,
     volume: polygonOptionQuote.volume ?? 0,
     distanceToStrike: roundTo(distanceToStrike, 2),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),

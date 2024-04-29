@@ -131,7 +131,11 @@ const myTradesCache: IMyTradesCache = {
 
 export async function LoadLiveTrade(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
   try {
-    const liveSpread = await window.api.spreads.GetSpread({ ticker: trade.spreadAtOpen.underlying.ticker, shortOptionTicker: trade.spreadAtOpen.shortLeg.ticker, longOptionTicker: trade.spreadAtOpen.longLeg.ticker });
+    const liveSpread = await window.api.spreads.GetSpread({
+      underlyingTicker: trade.spreadAtOpen.underlying.ticker,
+      shortLeg: trade.spreadAtOpen.shortLeg,
+      longLeg: trade.spreadAtOpen.longLeg,
+    });
     trade.spreadLive = liveSpread;
     const updatedTrade = { ...trade };
     return updatedTrade;
@@ -143,7 +147,7 @@ export async function LoadLiveTrade(trade: CallCreditSpreadTrade): Promise<CallC
   }
 }
 async function LoadExpiredSpread(trade: CallCreditSpreadTrade): Promise<CallCreditSpreadTrade> {
-  const spreadAtExpiration = await window.api.spreads.GetSpreadOnDate({
+  const spreadAtExpiration = await window.api.spreads.GetSpread({
     shortLeg: trade.spreadAtOpen.shortLeg,
     longLeg: trade.spreadAtOpen.longLeg,
     underlyingTicker: trade.spreadAtOpen.underlying.ticker,

@@ -1,9 +1,9 @@
 import { RunScreener, ScreenerResults, SpreadParameters } from '../CallCreditSpreads/Screener';
 import { ipcMain } from 'electron';
 import { CallCreditSpread, Option } from '../CallCreditSpreads/Data/Types';
-import { GetStock, GetStockOnDate } from '../CallCreditSpreads/Data/Stock';
+import { GetStock } from '../CallCreditSpreads/Data/Stock';
 import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
-import { GetCallOption, GetCallOptionOn } from '../CallCreditSpreads/Data/Option';
+import { GetCallOption } from '../CallCreditSpreads/Data/Option';
 
 export interface RunScreenerResultsArgs {
   ticker: string;
@@ -25,27 +25,14 @@ ipcMain.handle('RunScreener', async (event, { ticker, expiration, params }: RunS
 });
 
 export interface GetSpreadArgs {
-  ticker: string;
-  shortOptionTicker: string;
-  longOptionTicker: string;
-}
-
-ipcMain.handle('GetSpread', async (event, { ticker, shortOptionTicker, longOptionTicker }: GetSpreadArgs): Promise<CallCreditSpread> => {
-  const stock = await GetStock(ticker);
-  const [shortOption, longOption] = await Promise.all([GetCallOption(shortOptionTicker, stock), GetCallOption(longOptionTicker, stock)]);
-  return BuildCallCreditSpread(stock, shortOption, longOption);
-});
-
-export interface GetSpreadOnDateArgs {
   underlyingTicker: string;
   shortLeg: string | Option;
   longLeg: string | Option;
-  onDate: Date;
+  onDate?: Date;
 }
 
-ipcMain.handle('GetSpreadOnDate', async (event, { underlyingTicker, shortLeg, longLeg, onDate }: GetSpreadOnDateArgs): Promise<CallCreditSpread> => {
-  const stock = await GetStockOnDate(underlyingTicker, onDate);
-
-  const [shortOption, longOption] = await Promise.all([GetCallOptionOn(shortLeg, stock, onDate), GetCallOptionOn(longLeg, stock, onDate)]);
+ipcMain.handle('GetSpread', async (event, { underlyingTicker, shortLeg, longLeg, onDate }: GetSpreadArgs): Promise<CallCreditSpread> => {
+  const stock = await GetStock(underlyingTicker, onDate);
+  const [shortOption, longOption] = await Promise.all([GetCallOption(shortLeg, stock, onDate), GetCallOption(longLeg, stock, onDate)]);
   return BuildCallCreditSpread(stock, shortOption, longOption);
 });
