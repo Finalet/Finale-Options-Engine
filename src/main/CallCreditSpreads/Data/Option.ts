@@ -102,8 +102,8 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
       theta: roundTo(polygonOption.greeks.theta, 4),
       vega: roundTo(polygonOption.greeks.vega, 4),
     },
-    distanceToStrike: roundTo(distanceToStrike, 2),
-    distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 2),
+    distanceToStrike: roundTo(distanceToStrike, 4),
+    distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 4),
     volume: yahooOption?.volume ?? (daysSinceUpdate > 1 ? 0 : polygonOption.day.volume),
   };
 };

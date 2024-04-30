@@ -196,7 +196,7 @@ const columns: any = [
   columnHelper.accessor((row) => row.shortLeg.distanceToStrike, {
     id: 'DTS',
     header: ({ column }) => <DataTableColumnHeader column={column} title="DTS" />,
-    sortingFn: (a, b) => a.original.shortLeg.strike - b.original.shortLeg.strike,
+    sortingFn: (a, b) => a.original.shortLeg.distanceToStrike - b.original.shortLeg.distanceToStrike,
     cell: ({ row }) => {
       return <span>{Math.round(row.original.shortLeg.distanceToStrike * 100)}%</span>;
     },
@@ -204,6 +204,7 @@ const columns: any = [
   columnHelper.accessor((row) => row.shortLeg.distanceOverBollingerBand, {
     id: 'DOB',
     header: ({ column }) => <DataTableColumnHeader column={column} title="DOB" />,
+    sortingFn: (a, b) => a.original.shortLeg.distanceOverBollingerBand - b.original.shortLeg.distanceOverBollingerBand,
     cell: ({ row }) => {
       return <span>{Math.round(row.original.shortLeg.distanceOverBollingerBand * 100)}%</span>;
     },
