@@ -13,7 +13,8 @@ const ScreenerControls = ({ running, Run }: { running: boolean; Run: (tickers: s
   useEffect(() => {
     screenerCache.parameters.tickers = tickers;
     screenerCache.parameters.expiration = expiration;
-  }, [tickers, expiration]);
+    screenerCache.parameters.colors.dict = tickerColorDict.current;
+  }, [tickers, expiration, tickerColorDict.current]);
 
   return (
     <div className="w-full h-full flex flex-col gap-3 overflow-auto">

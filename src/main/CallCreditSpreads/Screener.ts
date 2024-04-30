@@ -13,7 +13,7 @@ export interface ScreenerResults {
 export async function RunScreener(stock: string, params?: SpreadParameters): Promise<ScreenerResults> {
   const { minSpreadDistance, maxSpreadDistance, minDistanceToStrike, minIV, maxIV, maxDelta, minVolume, minDistanceOverBollingerBand, minDaysToEarnings, maxLegBidAskSpread, minReturn } = params ?? {};
 
-  const chain: OptionChain | undefined = DataManager.chains[stock];
+  const chain: OptionChain | undefined = { ...DataManager.chains[stock] };
   if (!chain) throw new Error(`[OPTION-CHAIN-NOT-LOADED]`);
 
   const statistics: ScreenerStatistics = {

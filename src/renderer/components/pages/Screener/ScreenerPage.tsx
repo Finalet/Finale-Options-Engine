@@ -26,25 +26,21 @@ const ScreenerPage = () => {
   const colorDict = useRef<ColorDictionary>(screenerCache.colors);
 
   async function RunScreener(tickers: string[], colors: ColorDictionary, params?: SpreadParameters) {
-    setSpreads([]);
-    setStatistics(undefined);
     setRunning(true);
 
     colorDict.current = colors;
+    let receivedSpreads: CallCreditSpread[] = [];
+    let receivedStatistics: ScreenerStatistics = { optionsFilterSteps: [], spreadsFilterSteps: [] };
     for (const ticker of tickers) {
       try {
         const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
-        setStatistics((prev) => {
-          if (!prev) return statistics;
-          prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
-            return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
-          });
-          prev.spreadsFilterSteps = prev.spreadsFilterSteps.map((v, i) => {
-            return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
-          });
-          return prev;
+        receivedSpreads.push(...spreads);
+        receivedStatistics.optionsFilterSteps = receivedStatistics.optionsFilterSteps.map((v, i) => {
+          return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
         });
-        setSpreads((prev) => [...prev, ...spreads]);
+        receivedStatistics.spreadsFilterSteps = receivedStatistics.spreadsFilterSteps.map((v, i) => {
+          return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
+        });
       } catch (error: any) {
         console.log(error);
         if (error.message.includes('[OPTION-CHAIN-NOT-LOADED]')) {
@@ -55,6 +51,8 @@ const ScreenerPage = () => {
         continue;
       }
     }
+    setSpreads(receivedSpreads);
+    setStatistics(receivedStatistics);
     setRunning(false);
   }
 
@@ -278,6 +276,7 @@ interface IScreenerCache {
       dict: ColorDictionary;
       pool: string[];
     };
+    nLoadedChains: number;
   };
 }
 
@@ -294,5 +293,6 @@ export const screenerCache: IScreenerCache = {
       dict: {},
       pool: [],
     },
+    nLoadedChains: 0,
   },
 };

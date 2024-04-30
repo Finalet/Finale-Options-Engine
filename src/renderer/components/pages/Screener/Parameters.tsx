@@ -8,12 +8,10 @@ import { Label } from '../../shadcn/ui/label';
 import { allParameters, Parameter, ParameterPreset, parameterPresets } from './ParameterTypes';
 import { Button } from '../../shadcn/ui/button';
 import { ChevronDown } from 'lucide-react';
-import React, { MutableRefObject, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Input } from '../../shadcn/ui/input';
 import { SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import { screenerCache } from './ScreenerPage';
-import { ColorDictionary } from './Setup';
-import { toast } from 'sonner';
 
 interface ParametersProps {
   tickers: string[];
@@ -99,6 +97,11 @@ const Parameters = ({ tickers, expiration, running, Run }: ParametersProps) => {
     }
     return output;
   }, [parameters]);
+
+  useEffect(() => {
+    screenerCache.parameters.parameters = parameters;
+    screenerCache.parameters.values = values;
+  }, [parameters, values]);
 
   return (
     <Card className="w-full h-full flex flex-col overflow-auto">

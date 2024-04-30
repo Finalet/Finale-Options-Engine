@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../shadcn/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '../../shadcn/ui/command';
 import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, top100Tickers } from '@/src/main/CallCreditSpreads/Data/Tickers';
 import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons';
-import { Dispatch, MutableRefObject, useRef, useState } from 'react';
+import { Dispatch, MutableRefObject, useEffect, useRef, useState } from 'react';
 import { screenerCache } from './ScreenerPage';
 import { Badge } from '../../shadcn/ui/badge';
 import { Label } from '../../shadcn/ui/label';
@@ -23,7 +23,7 @@ interface SetupProps {
 
 const Setup = ({ tickers, expiration, setTickers, setExpiration, tickerColorDict }: SetupProps) => {
   const [loading, setLoading] = useState(false);
-  const [nLoaded, setNLoaded] = useState(0);
+  const [nLoaded, setNLoaded] = useState(screenerCache.parameters.nLoadedChains);
 
   const tickerColorPool = useRef<string[]>(screenerCache.parameters.colors.pool);
 
@@ -83,6 +83,11 @@ const Setup = ({ tickers, expiration, setTickers, setExpiration, tickerColorDict
     setNLoaded(0);
   }
 
+  useEffect(() => {
+    screenerCache.parameters.colors.pool = tickerColorPool.current;
+    screenerCache.parameters.nLoadedChains = nLoaded;
+  }, [tickerColorPool.current, nLoaded]);
+
   return (
     <Card>
       <CardHeader>
@@ -118,9 +123,11 @@ const Setup = ({ tickers, expiration, setTickers, setExpiration, tickerColorDict
           <div className="w-full flex items-end justify-between gap-4">
             <div className="text-xs text-muted-foreground/50">{nLoaded} loaded chains</div>
             <div className="flex items-center justify-end gap-2">
-              <Button onClick={ClearLoadedChains} size="icon" variant="ghost" disabled={loading}>
-                <TrashIcon />
-              </Button>
+              {nLoaded > 0 && !loading && (
+                <Button onClick={ClearLoadedChains} size="icon" variant="ghost" disabled={loading}>
+                  <TrashIcon />
+                </Button>
+              )}
               <Button disabled={tickers.length === 0 || !expiration || loading} onClick={LoadOptionChains}>
                 {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
                 {loading ? 'Loading...' : 'Load'}
