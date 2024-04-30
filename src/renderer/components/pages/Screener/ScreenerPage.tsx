@@ -1,6 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
-import SearchParameters, { ColorDictionary } from './Parameters';
 import { DataTable } from '../../elements/DataTable/DataTable';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CallCreditSpread } from '@/src/main/CallCreditSpreads/Data/Types';
@@ -8,13 +7,15 @@ import { Badge } from '../../shadcn/ui/badge';
 import { DataTableColumnHeader } from '../../elements/DataTable/DataTableColumnHeader';
 import { ScreenerStatistics, SpreadParameters } from '@/src/main/CallCreditSpreads/Screener';
 import ScreenerBreakdown from './ScreenerBreakdown';
-import { toast } from 'sonner';
 import { Button } from '../../shadcn/ui/button';
 import { ExternalLink } from 'lucide-react';
 import dateAndTime from 'date-and-time';
 import { Separator } from '../../shadcn/ui/separator';
 import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 import { Parameter } from './ParameterTypes';
+import { ColorDictionary } from './Setup';
+import ScreenerControls from './ScreenerControls';
+import { toast } from 'sonner';
 
 const ScreenerPage = () => {
   const [spreads, setSpreads] = useState<CallCreditSpread[]>(screenerCache.spreads);
@@ -24,25 +25,35 @@ const ScreenerPage = () => {
 
   const colorDict = useRef<ColorDictionary>(screenerCache.colors);
 
-  async function RunScreener(tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) {
+  async function RunScreener(tickers: string[], colors: ColorDictionary, params?: SpreadParameters) {
     setSpreads([]);
     setStatistics(undefined);
     setRunning(true);
 
     colorDict.current = colors;
     for (const ticker of tickers) {
-      const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
-      setStatistics((prev) => {
-        if (!prev) return statistics;
-        prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
-          return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
+      try {
+        const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
+        setStatistics((prev) => {
+          if (!prev) return statistics;
+          prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
+            return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
+          });
+          prev.spreadsFilterSteps = prev.spreadsFilterSteps.map((v, i) => {
+            return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
+          });
+          return prev;
         });
-        prev.spreadsFilterSteps = prev.spreadsFilterSteps.map((v, i) => {
-          return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
-        });
-        return prev;
-      });
-      setSpreads((prev) => [...prev, ...spreads]);
+        setSpreads((prev) => [...prev, ...spreads]);
+      } catch (error: any) {
+        console.log(error);
+        if (error.message.includes('[OPTION-CHAIN-NOT-LOADED]')) {
+          toast.error(`Option chain for ${ticker} is not loaded.`);
+        } else {
+          toast.error(`Failed to run screener for ${ticker}.`);
+        }
+        continue;
+      }
     }
     setRunning(false);
   }
@@ -61,7 +72,7 @@ const ScreenerPage = () => {
     <div className="w-full h-full flex gap-3 select-none">
       <Results spreads={spreads} colors={colorDict.current} />
       <div className="w-1/3 max-w-[30rem] flex flex-col h-full gap-3">
-        <SearchParameters running={running} Run={RunScreener} />
+        <ScreenerControls Run={RunScreener} running={running} />
         <ScreenerBreakdown statistics={statistics} />
       </div>
     </div>

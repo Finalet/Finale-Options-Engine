@@ -1,14 +1,15 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { CallCreditSpread, CallCreditSpreadTrade, OptionChain } from './CallCreditSpreads/Data/Types';
+import { CallCreditSpread, CallCreditSpreadTrade } from './CallCreditSpreads/Data/Types';
 import { CloseTradeArgs, ExecuteTradeArgs } from './API/Trades';
 import { LoadOptionChainArgs, RunScreenerArgs } from './API/Screener';
-import { RunScreener, ScreenerResults } from './CallCreditSpreads/Screener';
+import { ScreenerResults } from './CallCreditSpreads/Screener';
 
 const API = {
   screener: {
-    LoadOptionChain: (args: LoadOptionChainArgs): Promise<OptionChain> => ipcRenderer.invoke('LoadOptionChain', args),
+    LoadOptionChain: (args: LoadOptionChainArgs): Promise<number> => ipcRenderer.invoke('LoadOptionChain', args),
+    ClearLoadedChains: () => ipcRenderer.send('ClearLoadedChains'),
     RunScreener: (args: RunScreenerArgs): Promise<ScreenerResults> => ipcRenderer.invoke('RunScreener', args),
   },
   trades: {

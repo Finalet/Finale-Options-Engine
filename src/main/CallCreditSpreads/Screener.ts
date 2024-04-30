@@ -14,7 +14,7 @@ export async function RunScreener(stock: string, params?: SpreadParameters): Pro
   const { minSpreadDistance, maxSpreadDistance, minDistanceToStrike, minIV, maxIV, maxDelta, minVolume, minDistanceOverBollingerBand, minDaysToEarnings, maxLegBidAskSpread, minReturn } = params ?? {};
 
   const chain: OptionChain | undefined = DataManager.chains[stock];
-  if (!chain) throw new Error(`Option chain for ${stock} is not loaded.`);
+  if (!chain) throw new Error(`[OPTION-CHAIN-NOT-LOADED]`);
 
   const statistics: ScreenerStatistics = {
     optionsFilterSteps: [{ step: 'All', count: chain.options.length }],
