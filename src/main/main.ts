@@ -15,7 +15,7 @@ import log from 'electron-log';
 import { resolveHtmlPath } from './util';
 import { ConfigurePolygon } from './CallCreditSpreads/Data/Option';
 import './API/App';
-import './API/Spreads';
+import './API/Screener';
 import './API/Trades';
 import './API/Transactions';
 import dotenv from 'dotenv';

@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { CallCreditSpread, CallCreditSpreadTrade, Option, Stock } from '../CallCreditSpreads/Data/Types';
+import { CallCreditSpread, CallCreditSpreadTrade, Option, OptionChain, Stock } from '../CallCreditSpreads/Data/Types';
 import jsonFile from 'jsonfile';
 import date from 'date-and-time';
 import fs from 'fs';
@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 
 export class DataManager {
   private static transactions: { [key: string]: any } = {};
+  static chains: { [key: string]: OptionChain } = {};
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
     const tradesFolderPath = DataManager.getTradesFolderPath();

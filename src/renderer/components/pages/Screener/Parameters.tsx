@@ -17,8 +17,11 @@ import { favoriteETFTickers, favoriteStockTickers, iwmTickers, snp500Tickers, to
 import date from 'date-and-time';
 import { Label } from '../../shadcn/ui/label';
 import { screenerCache } from './ScreenerPage';
+import { toast } from 'sonner';
 
 const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: string[], expiration: Date, colors: ColorDictionary, params?: SpreadParameters) => void }) => {
+  const [loading, setLoading] = useState(false);
+
   const [tickers, setTickers] = useState<string[]>(screenerCache.parameters.tickers);
   const [expiration, setExpiration] = useState<Date | undefined>(screenerCache.parameters.expiration);
 
@@ -155,6 +158,22 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
     return Math.ceil(date.subtract(to, new Date()).toDays());
   };
 
+  async function LoadOptionChains() {
+    if (!expiration || tickers.length === 0) return;
+
+    setLoading(true);
+    for (const ticker of tickers) {
+      try {
+        await window.api.screener.LoadOptionChain({ underlyingTicker: ticker, expiration });
+      } catch (error: any) {
+        if (error.message.includes('[WRONG-TICKER]')) toast.error(`[${ticker}] Ticker does not exist.`);
+        else if (error.message.includes('[FAILED-YAHOO-VALIDATION]')) toast.error(`[${ticker}] Failed Yahoo validation.`);
+        else toast.error(error.message);
+      }
+    }
+    setLoading(false);
+  }
+
   useEffect(() => {
     screenerCache.parameters.parameters = parameters;
     screenerCache.parameters.values = values;
@@ -197,6 +216,12 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
               </div>
               <DatePicker date={expiration} setDate={setExpiration} labelSuffix={expiration && ` (${getDte(expiration).toString()}d)`} presets={datePresets()} />
             </div>
+            <div className="w-full flex justify-end">
+              <Button disabled={tickers.length === 0 || !expiration || loading} onClick={LoadOptionChains}>
+                {loading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? 'Loading...' : 'Load'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -231,7 +256,7 @@ const SearchParameters = ({ running, Run }: { running: boolean; Run: (tickers: s
           <div className="flex justify-end mt-auto">
             <Button disabled={tickers.length === 0 || !expiration || running} onClick={ClickRun}>
               {running && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
-              {running ? 'Running...' : 'Run'}
+              {running ? 'Filtering...' : 'Filter'}
             </Button>
           </div>
         </CardContent>

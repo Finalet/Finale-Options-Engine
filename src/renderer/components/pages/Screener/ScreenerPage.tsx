@@ -31,24 +31,18 @@ const ScreenerPage = () => {
 
     colorDict.current = colors;
     for (const ticker of tickers) {
-      try {
-        const { spreads, statistics } = await window.api.spreads.RunScreener({ ticker, expiration, params });
-        setStatistics((prev) => {
-          if (!prev) return statistics;
-          prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
-            return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
-          });
-          prev.spreadsFilterSteps = prev.spreadsFilterSteps.map((v, i) => {
-            return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
-          });
-          return prev;
+      const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
+      setStatistics((prev) => {
+        if (!prev) return statistics;
+        prev.optionsFilterSteps = prev.optionsFilterSteps.map((v, i) => {
+          return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
         });
-        setSpreads((prev) => [...prev, ...spreads]);
-      } catch (error: any) {
-        if (error.message.includes('[WRONG-TICKER]')) toast.error(`[${ticker}] Ticker does not exist.`);
-        else if (error.message.includes('[FAILED-YAHOO-VALIDATION]')) toast.error(`[${ticker}] Failed Yahoo validation.`);
-        else toast.error(error.message);
-      }
+        prev.spreadsFilterSteps = prev.spreadsFilterSteps.map((v, i) => {
+          return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
+        });
+        return prev;
+      });
+      setSpreads((prev) => [...prev, ...spreads]);
     }
     setRunning(false);
   }

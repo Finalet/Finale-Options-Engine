@@ -1,6 +1,7 @@
+import { DataManager } from '../DataStorage/DataManager';
 import { BuildCallCreditSpreads } from './Data/BuildCallCreditSpread';
 import { GetCallOptionChain } from './Data/Option';
-import { CallCreditSpread, Option } from './Data/Types';
+import { CallCreditSpread, Option, OptionChain } from './Data/Types';
 import { filterByDaysToEarnings, filterByReturn } from './Filters/CallCreditSpreadFilters';
 import { filterByBidAskSpread, filterByBollingerBands, filterByDelta, filterByDistanceToStrike, filterByIV, filterByVolume } from './Filters/OptionFilters';
 
@@ -9,10 +10,11 @@ export interface ScreenerResults {
   statistics: ScreenerStatistics;
 }
 
-export async function RunScreener(stock: string, expiration: Date | string, params?: SpreadParameters): Promise<ScreenerResults> {
+export async function RunScreener(stock: string, params?: SpreadParameters): Promise<ScreenerResults> {
   const { minSpreadDistance, maxSpreadDistance, minDistanceToStrike, minIV, maxIV, maxDelta, minVolume, minDistanceOverBollingerBand, minDaysToEarnings, maxLegBidAskSpread, minReturn } = params ?? {};
 
-  const chain = await GetCallOptionChain(stock, expiration);
+  const chain: OptionChain | undefined = DataManager.chains[stock];
+  if (!chain) throw new Error(`Option chain for ${stock} is not loaded.`);
 
   const statistics: ScreenerStatistics = {
     optionsFilterSteps: [{ step: 'All', count: chain.options.length }],
