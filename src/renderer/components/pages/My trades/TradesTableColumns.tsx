@@ -93,13 +93,13 @@ export const openColumns: any = [
     id: 'change',
     header: ({ column }) => <DataTableColumnHeader column={column} title="Change" />,
     cell: ({ row }) => {
-      const currentChange = getCurrentChange(row.original);
+      const currentChange = getTradeCurrentChange(row.original);
       if (currentChange === undefined) return <Placeholder />;
       return <span className={`${currentChange > 0 ? 'text-red-600' : currentChange === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentChange}%</span>;
     },
     sortingFn: (a, b) => {
-      const aReturn = getCurrentChange(a.original);
-      const bReturn = getCurrentChange(b.original);
+      const aReturn = getTradeCurrentChange(a.original);
+      const bReturn = getTradeCurrentChange(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
       return aReturn - bReturn;
     },
@@ -109,13 +109,13 @@ export const openColumns: any = [
     size: 30,
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
-      const currentReturn = getCurrentReturn(row.original);
+      const currentReturn = getTradeCurrentReturn(row.original);
       if (currentReturn === undefined) return <Placeholder />;
       return <span className={`${currentReturn > 0 ? 'text-primary' : currentReturn === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{currentReturn}%</span>;
     },
     sortingFn: (a, b) => {
-      const aReturn = getCurrentReturn(a.original);
-      const bReturn = getCurrentReturn(b.original);
+      const aReturn = getTradeCurrentReturn(a.original);
+      const bReturn = getTradeCurrentReturn(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
       return bReturn - aReturn;
     },
@@ -245,13 +245,13 @@ export const closedColumns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="Change" />,
     size: 70,
     cell: ({ row }) => {
-      const currentChange = getCurrentChange(row.original);
+      const currentChange = getTradeCurrentChange(row.original);
       if (currentChange === undefined) return <Placeholder />;
       return <span className={`${currentChange > 0 ? 'text-red-600' : currentChange === 0 ? 'text-foreground' : 'text-primary'} font-semibold`}>{currentChange}%</span>;
     },
     sortingFn: (a, b) => {
-      const aReturn = getCurrentChange(a.original);
-      const bReturn = getCurrentChange(b.original);
+      const aReturn = getTradeCurrentChange(a.original);
+      const bReturn = getTradeCurrentChange(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
       return aReturn - bReturn;
     },
@@ -261,13 +261,13 @@ export const closedColumns: any = [
     size: 30,
     header: ({ column }) => <DataTableColumnHeader column={column} title="Return" />,
     cell: ({ row }) => {
-      const currentReturn = getCurrentReturn(row.original);
+      const currentReturn = getTradeCurrentReturn(row.original);
       if (currentReturn === undefined) return <Placeholder />;
       return <span className={`${currentReturn > 0 ? 'text-primary' : currentReturn === 0 ? 'text-foreground' : 'text-red-600'} font-semibold`}>{currentReturn}%</span>;
     },
     sortingFn: (a, b) => {
-      const aReturn = getCurrentReturn(a.original);
-      const bReturn = getCurrentReturn(b.original);
+      const aReturn = getTradeCurrentReturn(a.original);
+      const bReturn = getTradeCurrentReturn(b.original);
       if (aReturn === undefined || bReturn === undefined) return 0;
       return bReturn - aReturn;
     },
@@ -285,14 +285,14 @@ const Placeholder = ({ dynamicWidth, width }: { dynamicWidth?: string; width?: n
   );
 };
 
-const getCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
+export const getTradeCurrentChange = (trade: CallCreditSpreadTrade): number | undefined => {
   const openPrice = trade.spreadAtOpen.price;
   const currentPrice = trade.spreadLive?.price ?? trade.spreadAtExpiration?.price ?? trade.spreadAtClose?.price;
   if (currentPrice === undefined) return undefined;
   return roundTo((100 * (currentPrice - openPrice)) / openPrice, 1);
 };
 
-const getCurrentReturn = (trade: CallCreditSpreadTrade): number | undefined => {
+export const getTradeCurrentReturn = (trade: CallCreditSpreadTrade): number | undefined => {
   const openPrice = trade.spreadAtOpen.price;
   const currentPrice = trade.spreadLive?.price ?? trade.spreadAtExpiration?.price ?? trade.spreadAtClose?.price;
   if (currentPrice === undefined) return undefined;

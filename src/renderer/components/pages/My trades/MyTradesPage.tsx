@@ -6,9 +6,11 @@ import { ReloadIcon } from '@radix-ui/react-icons';
 import { Button } from '../../shadcn/ui/button';
 import { cn } from '../../shadcn/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
-import { closedColumns, openColumns } from './TradesTableColumns';
+import { closedColumns, getTradeCurrentChange, getTradeCurrentReturn, openColumns } from './TradesTableColumns';
 import { Badge } from '../../shadcn/ui/badge';
 import { toast } from 'sonner';
+import { DollarSignIcon } from 'lucide-react';
+import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
@@ -57,8 +59,6 @@ const MyTradesPage = () => {
     setOpenTrades((prev) => prev.filter((t) => t.id !== closedTrade.id));
   }
 
-  useEffect(() => {}, []);
-
   useEffect(() => {
     myTradesCache.tab = tab;
     if (!loading) {
@@ -74,7 +74,8 @@ const MyTradesPage = () => {
   }, []);
 
   return (
-    <div className="w-full h-full">
+    <div className="flex flex-col gap-3 w-full h-full">
+      {tab === 'open' ? <OpenTradesStats trades={openTrades} /> : <ClosedTradesStats trades={closedTrades} />}
       <Card className="w-full h-full flex flex-col">
         <CardHeader className="relative">
           <CardTitle>My trades</CardTitle>
@@ -114,6 +115,82 @@ export const StatusBadge = ({ status, className }: { status: CallCreditSpreadTra
     <Badge className={className} variant={status === 'open' ? 'default' : status === 'closed' ? 'outline' : 'destructive'}>
       {status.toUpperCase()}
     </Badge>
+  );
+};
+
+const OpenTradesStats = ({ trades }: { trades: CallCreditSpreadTrade[] }) => {
+  const getAvgReturn = () => {
+    let n = 0;
+    const allReturns = trades.reduce((acc, trade) => {
+      const currentReturn = getTradeCurrentReturn(trade);
+      if (currentReturn !== undefined) {
+        n++;
+        return acc + currentReturn;
+      }
+      return acc;
+    }, 0);
+    if (n === 0) return 0;
+    return allReturns / n;
+  };
+  const getAvgChange = () => {
+    let n = 0;
+    const allReturns = trades.reduce((acc, trade) => {
+      const currentChange = getTradeCurrentChange(trade);
+      if (currentChange !== undefined) {
+        n++;
+        return acc + currentChange;
+      }
+      return acc;
+    }, 0);
+    if (n === 0) return 0;
+    return allReturns / n;
+  };
+  const totalCredit = trades.reduce((acc, trade) => acc + trade.credit, 0);
+  const avgReturn = getAvgReturn();
+  const avgChange = getAvgChange();
+
+  return (
+    <div className="w-full flex items-start justify-start gap-3">
+      <StatCard title="Trades" value={trades.length.toString()} />
+      <StatCard title="Credit" value={`$${totalCredit}`} />
+      <StatCard title="Change" value={`${avgChange.toFixed(1)}%`} positive={avgChange === 0 ? undefined : avgChange < 0} />
+      <StatCard title="Return" value={`${avgReturn.toFixed(1)}%`} positive={avgReturn === 0 ? undefined : avgReturn > 0} />
+    </div>
+  );
+};
+
+const ClosedTradesStats = ({ trades }: { trades: CallCreditSpreadTrade[] }) => {
+  const getAvgReturn = () => {
+    let n = 0;
+    const allReturns = trades.reduce((acc, trade) => {
+      const currentReturn = getTradeCurrentReturn(trade);
+      if (currentReturn !== undefined) {
+        n++;
+        return acc + currentReturn;
+      }
+      return acc;
+    }, 0);
+    if (n === 0) return 0;
+    return allReturns / n;
+  };
+  const totalCredit = trades.reduce((acc, trade) => acc + trade.credit, 0);
+  const avgReturn = getAvgReturn();
+
+  return (
+    <div className="w-full flex items-start justify-start gap-3">
+      <StatCard title="Trades" value={trades.length.toString()} />
+      <StatCard title="Credit" value={`$${totalCredit}`} />
+      <StatCard title="Return" value={`${avgReturn.toFixed(1)}%`} positive={avgReturn === 0 ? undefined : avgReturn > 0} />
+    </div>
+  );
+};
+
+const StatCard = ({ title, value, positive }: { title: string; value: string; positive?: boolean }) => {
+  return (
+    <Card className="py-4 px-6 flex flex-col items-start justify-between w-[150px]">
+      <div className="font-medium text-sm text-muted-foreground">{title}</div>
+      <div className={cn('font-bold text-2xl', positive === undefined ? 'text-foreground' : positive ? 'text-primary' : 'text-red-600')}>{value}</div>
+    </Card>
   );
 };
 
