@@ -13,7 +13,6 @@ const CloseTradePopup = ({ trade, open }: { trade: CallCreditSpreadTrade; open: 
 
   async function CloseTrade() {
     const price = parseFloat(typedPrice);
-    console.log(price);
     if (isNaN(price)) return;
 
     const closedOn = dateClosed ? new Date(dateClosed.getFullYear(), dateClosed.getMonth(), dateClosed.getDate(), 17, 30) : trade.spreadAtOpen.expiration;

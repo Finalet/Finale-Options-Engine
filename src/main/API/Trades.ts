@@ -47,9 +47,9 @@ export interface CloseTradeArgs {
 
 ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTradeArgs) => {
   let spreadAtClose;
-  if (trade.spreadLive && Math.floor(date.subtract(new Date(), onDate).toDays()) === 0) {
+  if (trade.spreadLive && date.isSameDay(new Date(), onDate)) {
     spreadAtClose = trade.spreadLive;
-  } else if (trade.spreadAtExpiration && Math.floor(date.subtract(trade.spreadAtOpen.expiration, onDate).toDays()) === 0) {
+  } else if (trade.spreadAtExpiration && date.isSameDay(trade.spreadAtOpen.expiration, onDate)) {
     spreadAtClose = trade.spreadAtExpiration;
   } else {
     const spreadOnDate = await GetExistingSpread(trade.spreadAtOpen.underlying.ticker, trade.spreadAtOpen.shortLeg, trade.spreadAtOpen.longLeg, onDate);
