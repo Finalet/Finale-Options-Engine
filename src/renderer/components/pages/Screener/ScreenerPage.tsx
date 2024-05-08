@@ -16,6 +16,7 @@ import { Parameter } from './ParameterTypes';
 import { ColorDictionary } from './Setup';
 import ScreenerControls from './ScreenerControls';
 import { toast } from 'sonner';
+import { roundTo } from '@/src/main/CallCreditSpreads/Data/Utils';
 
 const ScreenerPage = () => {
   const [spreads, setSpreads] = useState<CallCreditSpread[]>(screenerCache.spreads);
@@ -35,10 +36,10 @@ const ScreenerPage = () => {
       try {
         const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
         receivedSpreads.push(...spreads);
-        receivedStatistics.optionsFilterSteps = receivedStatistics.optionsFilterSteps.map((v, i) => {
+        receivedStatistics.optionsFilterSteps = statistics.optionsFilterSteps.map((v, i) => {
           return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
         });
-        receivedStatistics.spreadsFilterSteps = receivedStatistics.spreadsFilterSteps.map((v, i) => {
+        receivedStatistics.spreadsFilterSteps = statistics.spreadsFilterSteps.map((v, i) => {
           return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
         });
       } catch (error: any) {
@@ -201,7 +202,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="DTS" />,
     sortingFn: (a, b) => a.original.shortLeg.distanceToStrike - b.original.shortLeg.distanceToStrike,
     cell: ({ row }) => {
-      return <span>{Math.round(row.original.shortLeg.distanceToStrike * 100)}%</span>;
+      return <span>{roundTo(row.original.shortLeg.distanceToStrike * 100, 1)}%</span>;
     },
   }),
   columnHelper.accessor((row) => row.shortLeg.distanceOverBollingerBand, {
@@ -209,7 +210,7 @@ const columns: any = [
     header: ({ column }) => <DataTableColumnHeader column={column} title="DOB" />,
     sortingFn: (a, b) => a.original.shortLeg.distanceOverBollingerBand - b.original.shortLeg.distanceOverBollingerBand,
     cell: ({ row }) => {
-      return <span>{Math.round(row.original.shortLeg.distanceOverBollingerBand * 100)}%</span>;
+      return <span>{roundTo(row.original.shortLeg.distanceOverBollingerBand * 100, 1)}%</span>;
     },
   }),
   columnHelper.accessor((row) => row.returnAtExpiration, {
