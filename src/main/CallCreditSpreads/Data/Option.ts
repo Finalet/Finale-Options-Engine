@@ -74,7 +74,10 @@ export async function GetExistingCallOption(option: Option, underlying: Stock, o
 
 export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallOrPut | undefined, underlying: Stock): Option => {
   const lastUpdated = new Date(polygonOption.day.last_updated / 1000000);
-  const daysSinceUpdate = date.subtract(new Date(), lastUpdated).toDays();
+  const updatedToday = date.isSameDay(new Date(), lastUpdated);
+
+  const yahooLastTraded = yahooOption?.lastTradeDate;
+  const yahooUpdatedToday = yahooLastTraded ? date.isSameDay(new Date(), yahooLastTraded) : undefined;
 
   const [year, month, day] = polygonOption.details.expiration_date.split('-').map(Number);
   const expiration = new Date(year, month - 1, day, 17, 30, 0);
@@ -84,6 +87,13 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
 
   const distanceToStrike = getDistanceToStrike(contractType, strike, underlying.price);
   const distanceOverBollingerBand = getDistanceOverBollingerBand(strike, underlying.bollingerBands.upperBand);
+
+  let volume = 0;
+  if (yahooOption?.volume !== undefined && yahooUpdatedToday) {
+    volume = yahooOption?.volume;
+  } else if (polygonOption.day.volume !== undefined && updatedToday) {
+    volume = polygonOption.day.volume;
+  }
 
   return {
     dateUpdated: new Date(),
@@ -104,7 +114,7 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
     },
     distanceToStrike: roundTo(distanceToStrike, 4),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 4),
-    volume: yahooOption?.volume ?? (daysSinceUpdate > 1 ? 0 : polygonOption.day.volume),
+    volume,
   };
 };
 
