@@ -7,6 +7,7 @@ import { GetStock } from '../CallCreditSpreads/Data/Stock';
 import { GetExistingCallOption } from '../CallCreditSpreads/Data/Option';
 import { BuildCallCreditSpread } from '../CallCreditSpreads/Data/BuildCallCreditSpread';
 import date from 'date-and-time';
+import { roundTo } from '../CallCreditSpreads/Data/Utils';
 
 ipcMain.handle('LoadTrades', async () => {
   return await DataManager.LoadTrades();
@@ -25,6 +26,7 @@ ipcMain.handle('ExecuteTrade', async (event, { spread, atPrice, quantity }: Exec
     const distance = spread.longLeg.strike - spread.shortLeg.strike;
     spread.maxProfit = atPrice * 100;
     spread.maxLoss = distance * 100 - spread.maxProfit;
+    spread.returnAtExpiration = spread.maxProfit / spread.collateral;
   }
   const trade: CallCreditSpreadTrade = {
     id: nanoid(),
@@ -64,6 +66,7 @@ ipcMain.handle('CloseTrade', async (event, { trade, atPrice, onDate }: CloseTrad
   const distance = spreadAtClose.longLeg.strike - spreadAtClose.shortLeg.strike;
   spreadAtClose.maxProfit = atPrice * 100;
   spreadAtClose.maxLoss = distance * 100 - spreadAtClose.maxProfit;
+  spreadAtClose.returnAtExpiration = spreadAtClose.maxProfit / spreadAtClose.collateral;
 
   trade.status = 'closed';
   trade.spreadAtClose = spreadAtClose;
