@@ -74,9 +74,9 @@ const MyTradesPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 w-full h-full">
+    <div className="flex flex-col gap-3 w-full h-full overflow-auto">
       {tab === 'open' ? <OpenTradesStats trades={openTrades} /> : <ClosedTradesStats trades={closedTrades} />}
-      <Card className="w-full h-full flex flex-col">
+      <Card className="w-full h-full flex flex-col overflow-auto">
         <CardHeader className="relative">
           <CardTitle>My trades</CardTitle>
           <CardDescription>List of open and closed positions.</CardDescription>

@@ -62,7 +62,6 @@ export const top100Tickers = [
   'PBR',
   'KOS',
   'WMT',
-  'RYCEY',
   'LCID',
   'GM',
   'LYFT',
