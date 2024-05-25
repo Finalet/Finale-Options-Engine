@@ -9,8 +9,6 @@ import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
 import { closedColumns, getTradeCurrentChange, getTradeCurrentReturn, openColumns } from './TradesTableColumns';
 import { Badge } from '../../shadcn/ui/badge';
 import { toast } from 'sonner';
-import { DollarSignIcon } from 'lucide-react';
-import { DisplayValue } from '../Spread details/SpreadDetailsPage';
 
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
@@ -94,6 +92,7 @@ const MyTradesPage = () => {
             onRowClick={(t) => window.api.app.OpenTradeDetails(t)}
             searchColumnID="trade"
             searchPlaceholder="Search trade"
+            defaultSort={{ id: 'dateOpened', dir: 'desc' }}
             headerButtons={
               tab === 'open' && (
                 <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">

@@ -95,6 +95,16 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
     volume = polygonOption.day.volume;
   }
 
+  const greeks =
+    Object.keys(polygonOption.greeks).length === 0
+      ? undefined
+      : {
+          delta: roundTo(polygonOption.greeks.delta, 4),
+          gamma: roundTo(polygonOption.greeks.gamma, 4),
+          theta: roundTo(polygonOption.greeks.theta, 4),
+          vega: roundTo(polygonOption.greeks.vega, 4),
+        };
+
   return {
     dateUpdated: new Date(),
     ticker: polygonOption.details.ticker.split(':')[1],
@@ -106,12 +116,7 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
     ask: yahooOption?.ask !== undefined ? roundTo(yahooOption?.ask, 2) : undefined,
     price: yahooOption?.bid !== undefined && yahooOption?.ask !== undefined ? roundTo((yahooOption.bid + yahooOption.ask) / 2, 2) : roundTo(polygonOption.day.close, 2),
     impliedVolatility: roundTo(polygonOption.implied_volatility, 4),
-    greeks: {
-      delta: roundTo(polygonOption.greeks.delta, 4),
-      gamma: roundTo(polygonOption.greeks.gamma, 4),
-      theta: roundTo(polygonOption.greeks.theta, 4),
-      vega: roundTo(polygonOption.greeks.vega, 4),
-    },
+    greeks: greeks,
     distanceToStrike: roundTo(distanceToStrike, 4),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 4),
     volume,
