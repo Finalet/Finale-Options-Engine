@@ -48,10 +48,12 @@ export async function GetCallOptionChain(stock: string | Stock, expiration: Date
   const optionChain: OptionChain = {
     underlying: underlyingStock,
     options:
-      polygonOptions.map((polygonOption) => {
-        const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
-        return optionFromPolygonAndYahoo(polygonOption, yahooOption, underlyingStock);
-      }) ?? [],
+      polygonOptions
+        .map((polygonOption) => {
+          const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);
+          return optionFromPolygonAndYahoo(polygonOption, yahooOption, underlyingStock);
+        })
+        .filter((option) => !isNaN(option.price)) ?? [],
   };
 
   return optionChain;
@@ -115,7 +117,7 @@ export const optionFromPolygonAndYahoo = (polygonOption: any, yahooOption: CallO
     bid: yahooOption?.bid !== undefined ? roundTo(yahooOption?.bid, 2) : undefined,
     ask: yahooOption?.ask !== undefined ? roundTo(yahooOption?.ask, 2) : undefined,
     price: yahooOption?.bid !== undefined && yahooOption?.ask !== undefined ? roundTo((yahooOption.bid + yahooOption.ask) / 2, 2) : roundTo(polygonOption.day.close, 2),
-    impliedVolatility: roundTo(polygonOption.implied_volatility, 4),
+    impliedVolatility: polygonOption.implied_volatility !== undefined ? roundTo(polygonOption.implied_volatility, 4) : undefined,
     greeks: greeks,
     distanceToStrike: roundTo(distanceToStrike, 4),
     distanceOverBollingerBand: roundTo(distanceOverBollingerBand, 4),

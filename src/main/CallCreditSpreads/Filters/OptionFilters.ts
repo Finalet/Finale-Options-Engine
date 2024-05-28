@@ -2,10 +2,12 @@ import { Option, Stock } from '../Data/Types';
 import { roundTo } from '../Data/Utils';
 
 export function filterByDelta(option: Option, maxDelta: number): boolean {
+  if (option.greeks === undefined) return false;
   return option.greeks.delta <= maxDelta;
 }
 
 export function filterByIV(option: Option, minIV: number, maxIV?: number): boolean {
+  if (option.impliedVolatility === undefined) return false;
   return option.impliedVolatility >= minIV && (!maxIV || option.impliedVolatility <= maxIV);
 }
 
