@@ -136,7 +136,7 @@
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
-    "yahoo-finance2": "^2.11.2"
+    "yahoo-finance2": "^2.11.3"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
