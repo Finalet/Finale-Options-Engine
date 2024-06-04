@@ -132,7 +132,12 @@ const Parameters = ({ tickers, expiration, running, Run }: ParametersProps) => {
           </div>
         )}
         <AddParameterButton excludeParameters={parameters} AddParameters={AddParameters} AddPreset={AddPreset} addedParameters={parameters} />
-        <div className="flex justify-end mt-auto">
+        <div className="flex justify-end mt-auto gap-2">
+          {parameters.length > 0 && (
+            <Button onClick={() => RemoveParameter(parameters)} size="icon" variant="ghost">
+              <TrashIcon />
+            </Button>
+          )}
           <Button disabled={tickers.length === 0 || !expiration || running} onClick={ClickRun}>
             {running && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
             {running ? 'Filtering...' : 'Filter'}
