@@ -12,6 +12,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, DialogTrigger } from '../../shadcn/ui/dialog';
 import ExecuteTradePopup from './ExecuteTradePopup';
 import { OpenExternalSource } from '../Trade details/TradeDetailsPage';
+import { Helmet } from 'react-helmet-async';
 
 const SpreadDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -34,6 +35,12 @@ const SpreadDetailsPage = () => {
 
   return (
     <div className="w-screen h-screen flex items-start justify-start gap-3 select-none p-3 overflow-clip">
+      <Helmet>
+        <title>{`${spread.underlying.ticker} $${spread.shortLeg.strike} / $${spread.longLeg.strike} | Expire${spread.expiration < new Date() ? 'd' : 's'} ${dateAndTime.format(
+          spread.expiration,
+          isThisYear(spread.expiration) ? 'MMM D' : 'MMM D, YYYY',
+        )}`}</title>
+      </Helmet>
       <div className="min-w-[300px] flex flex-col items-start justify-start gap-3">
         <StockDetails stock={spread.underlying} />
         <SpreadDetails spread={spread} />
@@ -250,3 +257,5 @@ const Actions = ({ spread }: { spread: CallCreditSpread }) => {
     </div>
   );
 };
+
+const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();

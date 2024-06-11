@@ -13,6 +13,7 @@ import { StatusBadge } from '../My trades/MyTradesPage';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { Skeleton } from '../../shadcn/ui/skeleton';
+import { Helmet } from 'react-helmet-async';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -51,6 +52,15 @@ const TradeDetailsPage = () => {
 
   return (
     <div className="w-screen h-screen flex flex-col items-start justify-start gap-3 select-none p-3 overflow-clip">
+      <Helmet>
+        <title>{`${trade.spreadAtOpen.underlying.ticker} $${trade.spreadAtOpen.shortLeg.strike} / $${trade.spreadAtOpen.longLeg.strike} x${trade.quantity} | ${
+          trade.status === 'open'
+            ? `Expires on ${date.format(trade.spreadAtOpen.expiration, isThisYear(trade.spreadAtOpen.expiration) ? 'MMM D' : 'MMM D, YYYY')}`
+            : trade.dateClosed !== undefined
+            ? `Closed on ${date.format(trade.dateClosed, isThisYear(trade.dateClosed) ? 'MMM D' : 'MMM D, YYYY')}`
+            : ''
+        }`}</title>
+      </Helmet>
       <div className="w-full flex items-start justify-start gap-3">
         <Trade trade={trade} />
         <div className="w-full flex flex-col gap-3">
