@@ -172,14 +172,14 @@ const ClosedTradesStats = ({ trades }: { trades: CallCreditSpreadTrade[] }) => {
     if (n === 0) return 0;
     return allReturns / n;
   };
-  const totalCredit = trades.reduce((acc, trade) => acc + trade.credit, 0);
+  const totalIncome = trades.reduce((acc, trade) => acc + trade.credit - (trade.debit ?? 0), 0);
   const avgReturn = getAvgReturn();
 
   const weekTrades = trades.filter((trade) => {
     return trade.dateOpened >= prevMonday() && trade.dateOpened <= prevSunday();
   });
 
-  const weekCredit = weekTrades.reduce((acc, trade) => acc + trade.credit, 0);
+  const weekIncome = weekTrades.reduce((acc, trade) => acc + trade.credit - (trade.debit ?? 0), 0);
 
   const getWeekAvgReturn = () => {
     let n = 0;
@@ -200,12 +200,12 @@ const ClosedTradesStats = ({ trades }: { trades: CallCreditSpreadTrade[] }) => {
     <div className="w-full flex items-center justify-between gap-3">
       <div className="flex items-start justify-start gap-3">
         <StatCard title="Week trades" value={weekTrades.length.toString()} />
-        <StatCard title="Week credit" value={`$${weekCredit}`} />
+        <StatCard title="Week income" value={`$${weekIncome}`} />
         <StatCard title="Week return" value={`${weekAvgReturn.toFixed(1)}%`} positive={avgReturn === 0 ? undefined : avgReturn > 0} />
       </div>
       <div className="flex items-start justify-start gap-3">
         <StatCard title="All trades" value={trades.length.toString()} />
-        <StatCard title="All credit" value={`$${totalCredit}`} />
+        <StatCard title="All income" value={`$${totalIncome}`} />
         <StatCard title="All return" value={`${avgReturn.toFixed(1)}%`} positive={avgReturn === 0 ? undefined : avgReturn > 0} />
       </div>
     </div>
