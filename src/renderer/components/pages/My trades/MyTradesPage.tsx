@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '../../shadcn/ui/tabs';
 import { closedColumns, getTradeCurrentChange, getTradeCurrentReturn, openColumns } from './TradesTableColumns';
 import { Badge } from '../../shadcn/ui/badge';
 import { toast } from 'sonner';
+import { FolderOpen } from 'lucide-react';
 
 const MyTradesPage = () => {
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,8 @@ const MyTradesPage = () => {
     setClosedTrades(closedTrades);
 
     if (openTrades.some((t) => t.spreadLive === undefined)) await GetLiveData(openTrades);
+
+    console.log(trades);
   }
 
   async function GetLiveData(trades: CallCreditSpreadTrade[]) {
@@ -94,11 +97,16 @@ const MyTradesPage = () => {
             searchPlaceholder="Search trade"
             defaultSort={{ id: 'dateOpened', dir: 'desc' }}
             headerButtons={
-              tab === 'open' && (
-                <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">
-                  <ReloadIcon className={cn(loading && 'animate-spin')} />
+              <>
+                {tab === 'open' && (
+                  <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">
+                    <ReloadIcon className={cn(loading && 'animate-spin')} />
+                  </Button>
+                )}
+                <Button onClick={() => window.api.app.OpenTradesFolder()} variant="outline" size="icon">
+                  <FolderOpen className="w-4 h-4" />
                 </Button>
-              )
+              </>
             }
           />
         </CardContent>

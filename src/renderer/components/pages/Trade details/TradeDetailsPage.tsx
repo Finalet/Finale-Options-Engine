@@ -7,13 +7,14 @@ import { Button } from '../../shadcn/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../shadcn/ui/card';
 import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink, FolderOpen } from 'lucide-react';
 import CloseTradePopup from './CloseTradePopup';
 import { StatusBadge } from '../My trades/MyTradesPage';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '../../shadcn/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { Skeleton } from '../../shadcn/ui/skeleton';
 import { Helmet } from 'react-helmet-async';
+import { FileIcon } from '@radix-ui/react-icons';
 
 const TradeDetailsPage = () => {
   const [searchParams] = useSearchParams();
@@ -206,7 +207,7 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 
   return (
     <div className="w-full flex justify-end p-3 gap-3">
-      <OpenExternalSource ticker={trade.spreadAtOpen.shortLeg.underlyingTicker} />
+      <OpenExternalSource trade={trade} />
       <Dialog onOpenChange={(v) => setOpen(v)}>
         <DialogTrigger asChild>
           <Button>Close trade</Button>
@@ -219,7 +220,9 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 
 const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();
 
-export const OpenExternalSource = ({ ticker }: { ticker: string }) => {
+export const OpenExternalSource = ({ trade }: { trade: CallCreditSpreadTrade }) => {
+  const ticker = trade.spreadAtOpen.shortLeg.underlyingTicker;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -237,6 +240,10 @@ export const OpenExternalSource = ({ ticker }: { ticker: string }) => {
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuItem onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${ticker}`, '_blank')}>TradingView</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => window.api.app.OpenTradeFile(trade)}>
+            Trade file <FileIcon className="ml-auto" />
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

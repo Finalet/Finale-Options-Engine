@@ -29,6 +29,8 @@ const API = {
   app: {
     OpenSpreadDetails: (args: CallCreditSpread) => ipcRenderer.send('OpenSpreadDetails', args),
     OpenTradeDetails: (args: CallCreditSpreadTrade) => ipcRenderer.send('OpenTradeDetails', args),
+    OpenTradesFolder: () => ipcRenderer.send('OpenTradesFolder'),
+    OpenTradeFile: (trade: CallCreditSpreadTrade) => ipcRenderer.send('OpenTradeFile', trade),
   },
   transaction: {
     retrieve: <T>(id: string): Promise<T> => ipcRenderer.invoke('transactionRetrieve', id),

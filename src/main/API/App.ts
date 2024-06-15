@@ -88,3 +88,11 @@ ipcMain.on('OpenTradeDetails', (event, trade: CallCreditSpreadTrade) => {
     maxHeight: 494,
   });
 });
+
+ipcMain.on('OpenTradesFolder', () => {
+  shell.openPath(DataManager.getTradesFolderPath().replaceAll('/', '\\'));
+});
+
+ipcMain.on('OpenTradeFile', (event, trade: CallCreditSpreadTrade) => {
+  shell.openExternal(DataManager.getTradeFilePath(trade).replaceAll('/', '\\'));
+});

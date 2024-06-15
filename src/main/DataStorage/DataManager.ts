@@ -35,13 +35,13 @@ export class DataManager {
     await jsonFile.writeFile(filePath, trade, { spaces: 2 });
   }
 
-  private static getTradesFolderPath() {
+  static getTradesFolderPath() {
     return `${app.getPath('userData')}/Data/Trades`;
   }
   private static getTradeFileName(trade: CallCreditSpreadTrade) {
     return `${trade.spreadAtOpen.underlying.ticker}_${date.format(trade.dateOpened, 'MM-DD-YYYY')}_${trade.id.slice(0, 5)}`;
   }
-  private static getTradeFilePath(trade: CallCreditSpreadTrade) {
+  static getTradeFilePath(trade: CallCreditSpreadTrade) {
     return `${this.getTradesFolderPath()}/${this.getTradeFileName(trade)}.json`;
   }
 
