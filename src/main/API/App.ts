@@ -3,6 +3,7 @@ import path from 'path';
 import { resolveHtmlPath } from '../util';
 import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
 import { DataManager } from '../DataStorage/DataManager';
+import fs from 'fs';
 
 interface OpenWindowArgs {
   url: string;
@@ -90,7 +91,10 @@ ipcMain.on('OpenTradeDetails', (event, trade: CallCreditSpreadTrade) => {
 });
 
 ipcMain.on('OpenTradesFolder', () => {
-  shell.openPath(DataManager.getTradesFolderPath().replaceAll('/', '\\'));
+  const folderPath = DataManager.getTradesFolderPath();
+  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+
+  shell.openPath(folderPath.replaceAll('/', '\\'));
 });
 
 ipcMain.on('OpenTradeFile', (event, trade: CallCreditSpreadTrade) => {
