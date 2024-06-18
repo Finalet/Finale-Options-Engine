@@ -220,8 +220,8 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
 
 const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();
 
-export const OpenExternalSource = ({ trade }: { trade: CallCreditSpreadTrade }) => {
-  const ticker = trade.spreadAtOpen.shortLeg.underlyingTicker;
+export const OpenExternalSource = ({ trade, ticker }: { trade?: CallCreditSpreadTrade; ticker?: string }) => {
+  const underlyingTicker = ticker ?? trade?.spreadAtOpen.shortLeg.underlyingTicker;
 
   return (
     <DropdownMenu>
@@ -235,15 +235,19 @@ export const OpenExternalSource = ({ trade }: { trade: CallCreditSpreadTrade }) 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Robinhood</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/stocks/${ticker}`, '_blank')}>Stock</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/options/chains/${ticker}/builder/short_call_spread`, '_blank')}>Spread builder</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/stocks/${underlyingTicker}`, '_blank')}>Stock</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open(`https://robinhood.com/options/chains/${underlyingTicker}/builder/short_call_spread`, '_blank')}>Spread builder</DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
-          <DropdownMenuItem onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${ticker}`, '_blank')}>TradingView</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => window.api.app.OpenTradeFile(trade)}>
-            Trade file <FileIcon className="ml-auto" />
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.open(`https://www.tradingview.com/chart/?symbol=${underlyingTicker}`, '_blank')}>TradingView</DropdownMenuItem>
+          {trade && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => window.api.app.OpenTradeFile(trade)}>
+                Trade file <FileIcon className="ml-auto" />
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

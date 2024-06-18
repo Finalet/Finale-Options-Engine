@@ -36,12 +36,18 @@ const ScreenerPage = () => {
       try {
         const { spreads, statistics } = await window.api.screener.RunScreener({ underlyingTicker: ticker, params });
         receivedSpreads.push(...spreads);
-        receivedStatistics.optionsFilterSteps = statistics.optionsFilterSteps.map((v, i) => {
-          return { step: v.step, count: v.count + (statistics.optionsFilterSteps.length > 0 ? statistics.optionsFilterSteps[i].count : 0) };
+
+        statistics.optionsFilterSteps.forEach((v) => {
+          const stepIndex = receivedStatistics.optionsFilterSteps.findIndex((stats) => stats.step === v.step);
+          if (stepIndex === -1) receivedStatistics.optionsFilterSteps.push(v);
+          else receivedStatistics.optionsFilterSteps[stepIndex].count += v.count;
         });
-        receivedStatistics.spreadsFilterSteps = statistics.spreadsFilterSteps.map((v, i) => {
-          return { step: v.step, count: v.count + (statistics.spreadsFilterSteps.length > 0 ? statistics.spreadsFilterSteps[i].count : 0) };
+        statistics.spreadsFilterSteps.forEach((v) => {
+          const stepIndex = receivedStatistics.spreadsFilterSteps.findIndex((stats) => stats.step === v.step);
+          if (stepIndex === -1) receivedStatistics.spreadsFilterSteps.push(v);
+          else receivedStatistics.spreadsFilterSteps[stepIndex].count += v.count;
         });
+        console.log(receivedStatistics.spreadsFilterSteps.map((v) => v.count));
       } catch (error: any) {
         console.log(error);
         if (error.message.includes('[OPTION-CHAIN-NOT-LOADED]')) {

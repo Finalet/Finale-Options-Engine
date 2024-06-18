@@ -28,6 +28,7 @@ const SpreadDetailsPage = () => {
   }
 
   useEffect(() => {
+    console.log('spread details');
     LoadSpread();
   }, []);
 
