@@ -62,7 +62,7 @@ const PolygonAPISettingsModal = () => {
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Polygon API</DialogTitle>
-        <DialogDescription>A nessesary service used to fetch stock options data.</DialogDescription>
+        <DialogDescription>A service used to fetch stock options data.</DialogDescription>
       </DialogHeader>
       <div className="w-full flex flex-col gap-4 py-8">
         <div className="w-full flex items-center justify-between gap-16">

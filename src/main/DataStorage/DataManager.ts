@@ -5,6 +5,7 @@ import date from 'date-and-time';
 import fs from 'fs';
 import { nanoid } from 'nanoid';
 import Store from 'electron-store';
+import { ConfigurePolygon } from '../CallCreditSpreads/Data/Option';
 
 const configStore = new Store();
 
@@ -92,6 +93,7 @@ export class DataManager {
   }
   static setPolygonAPIKey(key: string) {
     configStore.set(configKeys.polygonApiKey, key);
+    ConfigurePolygon();
   }
 }
 
