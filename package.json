@@ -226,6 +226,11 @@
         "nsis"
       ]
     },
+    "nsis": {
+      "oneClick": false,
+      "uninstallDisplayName": "Uninstall Finale Options Engine",
+      "allowToChangeInstallationDirectory": true
+    },
     "linux": {
       "target": [
         "AppImage"
