@@ -1,8 +1,21 @@
+import { GearIcon } from '@radix-ui/react-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../shadcn/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../shadcn/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '../shadcn/ui/dropdown-menu';
 import SidemenuItem from './SidemenuItem';
-import { CandlestickChartIcon, Monitor, Moon, Sun } from 'lucide-react';
+import { CandlestickChartIcon, FolderOpen, FolderSync, Monitor, Moon, Sun, SunMoon } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Sidemenu = () => {
   return (
@@ -12,7 +25,7 @@ const Sidemenu = () => {
         <SidemenuItem label="My trades" icon={<CandlestickChartIcon className="max-w-full" />} url="/my-trades" />
       </div>
       <div className="w-full flex items-start">
-        <ModeToggle />
+        <SettingsDropdown />
       </div>
     </div>
   );
@@ -20,23 +33,76 @@ const Sidemenu = () => {
 
 export default Sidemenu;
 
-export function ModeToggle() {
-  const { setTheme } = useTheme();
-
+function SettingsDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
+          <GearIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
+        <DropdownMenuGroup>
+          <TradesFolder />
+          <ThemeToggle />
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function ThemeToggle() {
+  const { setTheme } = useTheme();
+
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={() => setTheme('light')}>
+            Light <Sun className="ml-auto w-4 h-4 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('dark')}>
+            Dark <Moon className="ml-auto w-4 h-4 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setTheme('system')}>
+            System <SunMoon className="ml-auto w-4 h-4 text-muted-foreground" />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
+  );
+}
+
+function TradesFolder() {
+  async function ChangeFolder() {
+    try {
+      const folderPath = await window.api.app.ChangeTradesFolder();
+      if (!folderPath) return;
+
+      toast.success(`Changed trades folder to ${folderPath}`);
+    } catch (error) {
+      toast.error(`Failed to change trades folder. ${error}`);
+    }
+  }
+
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>Trades folder</DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem onSelect={() => window.api.app.OpenTradesFolder()}>
+            Open
+            <FolderOpen className="ml-auto w-4 h-4 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={ChangeFolder}>
+            Change
+            <FolderSync className="ml-auto w-4 h-4 text-muted-foreground" />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
   );
 }

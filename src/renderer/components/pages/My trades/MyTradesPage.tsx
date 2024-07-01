@@ -97,16 +97,11 @@ const MyTradesPage = () => {
             searchPlaceholder="Search trade"
             defaultSort={{ id: 'dateOpened', dir: 'desc' }}
             headerButtons={
-              <>
-                {tab === 'open' && (
-                  <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">
-                    <ReloadIcon className={cn(loading && 'animate-spin')} />
-                  </Button>
-                )}
-                <Button onClick={() => window.api.app.OpenTradesFolder()} variant="outline" size="icon">
-                  <FolderOpen className="w-4 h-4" />
+              tab === 'open' && (
+                <Button disabled={loading} onClick={() => LoadTrades(true)} variant="outline" size="icon">
+                  <ReloadIcon className={cn(loading && 'animate-spin')} />
                 </Button>
-              </>
+              )
             }
           />
         </CardContent>
@@ -159,7 +154,7 @@ const OpenTradesStats = ({ trades }: { trades: CallCreditSpreadTrade[] }) => {
   return (
     <div className="w-full flex items-start justify-start gap-3">
       <StatCard title="Trades" value={trades.length.toString()} />
-      <StatCard title="Credit" value={`$${totalCredit}`} />
+      <StatCard title="Credit" value={`$${totalCredit.toFixed(0)}`} />
       <StatCard title="Change" value={`${avgChange.toFixed(1)}%`} positive={avgChange === 0 ? undefined : avgChange < 0} />
       <StatCard title="Return" value={`${avgReturn.toFixed(1)}%`} positive={avgReturn === 0 ? undefined : avgReturn > 0} />
     </div>

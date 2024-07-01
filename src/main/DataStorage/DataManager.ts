@@ -4,19 +4,22 @@ import jsonFile from 'jsonfile';
 import date from 'date-and-time';
 import fs from 'fs';
 import { nanoid } from 'nanoid';
+import Store from 'electron-store';
+
+const configStore = new Store();
 
 export class DataManager {
   private static transactions: { [key: string]: any } = {};
   static chains: { [key: string]: OptionChain } = {};
 
   static async LoadTrades(): Promise<CallCreditSpreadTrade[]> {
-    const tradesFolderPath = DataManager.getTradesFolderPath();
-    if (!fs.existsSync(tradesFolderPath)) return [];
-    const files = fs.readdirSync(tradesFolderPath);
+    const folderPath = DataManager.getTradesFolderPath();
+    if (!fs.existsSync(folderPath)) return [];
+    const files = fs.readdirSync(folderPath);
     let trades = await Promise.all(
       files.map(async (file) => {
         if (!file.endsWith('.json')) return null;
-        return (await jsonFile.readFile(`${tradesFolderPath}/${file}`)) as CallCreditSpreadTrade;
+        return (await jsonFile.readFile(`${folderPath}/${file}`)) as CallCreditSpreadTrade;
       }),
     );
 
@@ -36,7 +39,10 @@ export class DataManager {
   }
 
   static getTradesFolderPath() {
-    return `${app.getPath('userData')}/Data/Trades`;
+    return (configStore.get(configKeys.tradesFolderPath, undefined) as string | undefined) ?? `${app.getPath('userData')}/Data/Trades`;
+  }
+  static setTradesFolderPath(path: string) {
+    configStore.set(configKeys.tradesFolderPath, path);
   }
   private static getTradeFileName(trade: CallCreditSpreadTrade) {
     return `${trade.spreadAtOpen.underlying.ticker}_${date.format(trade.dateOpened, 'MM-DD-YYYY')}_${trade.id.slice(0, 5)}`;
@@ -81,3 +87,7 @@ export class DataManager {
     return object;
   }
 }
+
+const configKeys = {
+  tradesFolderPath: 'trades-folder-path',
+};
