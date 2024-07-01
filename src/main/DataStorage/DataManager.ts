@@ -86,8 +86,16 @@ export class DataManager {
     const object = this.transactions[id];
     return object;
   }
+
+  static polygonAPIKey() {
+    return configStore.get(configKeys.polygonApiKey, undefined) as string | undefined;
+  }
+  static setPolygonAPIKey(key: string) {
+    configStore.set(configKeys.polygonApiKey, key);
+  }
 }
 
 const configKeys = {
   tradesFolderPath: 'trades-folder-path',
+  polygonApiKey: 'polygon-api-key',
 };

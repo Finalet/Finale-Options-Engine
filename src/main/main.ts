@@ -18,6 +18,7 @@ import './API/App';
 import './API/Screener';
 import './API/Trades';
 import './API/Transactions';
+import './API/Settings';
 import dotenv from 'dotenv';
 
 dotenv.config();

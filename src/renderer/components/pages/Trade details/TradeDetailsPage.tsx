@@ -218,7 +218,7 @@ const Actions = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   );
 };
 
-const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();
+export const isThisYear = (date: Date) => date.getFullYear() === new Date().getFullYear();
 
 export const OpenExternalSource = ({ trade, ticker }: { trade?: CallCreditSpreadTrade; ticker?: string }) => {
   const underlyingTicker = ticker ?? trade?.spreadAtOpen.shortLeg.underlyingTicker;

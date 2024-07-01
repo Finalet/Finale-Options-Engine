@@ -1,10 +1,9 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { resolveHtmlPath } from '../util';
 import { CallCreditSpread, CallCreditSpreadTrade } from '../CallCreditSpreads/Data/Types';
 import { DataManager } from '../DataStorage/DataManager';
 import fs from 'fs';
-import { mainWindow } from '../main';
 
 interface OpenWindowArgs {
   url: string;
@@ -100,18 +99,4 @@ ipcMain.on('OpenTradesFolder', () => {
 
 ipcMain.on('OpenTradeFile', (event, trade: CallCreditSpreadTrade) => {
   shell.openExternal(DataManager.getTradeFilePath(trade).replaceAll('/', '\\'));
-});
-
-ipcMain.handle('ChangeTradesFolder', async () => {
-  if (!mainWindow) return;
-
-  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory'],
-  });
-  if (canceled || filePaths.length === 0) return;
-
-  const folderPath = filePaths[0];
-  DataManager.setTradesFolderPath(folderPath);
-
-  return folderPath;
 });

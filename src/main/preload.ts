@@ -31,7 +31,11 @@ const API = {
     OpenTradeDetails: (args: CallCreditSpreadTrade) => ipcRenderer.send('OpenTradeDetails', args),
     OpenTradesFolder: () => ipcRenderer.send('OpenTradesFolder'),
     OpenTradeFile: (trade: CallCreditSpreadTrade) => ipcRenderer.send('OpenTradeFile', trade),
+  },
+  settings: {
     ChangeTradesFolder: (): Promise<string | undefined> => ipcRenderer.invoke('ChangeTradesFolder'),
+    GetPolygonAPIKey: (): Promise<string | undefined> => ipcRenderer.invoke('GetPolygonAPIKey'),
+    SetPolygonAPIKey: (key: string) => ipcRenderer.invoke('SetPolygonAPIKey', key),
   },
   transaction: {
     retrieve: <T>(id: string): Promise<T> => ipcRenderer.invoke('transactionRetrieve', id),

@@ -14,8 +14,10 @@ import {
   DropdownMenuTrigger,
 } from '../shadcn/ui/dropdown-menu';
 import SidemenuItem from './SidemenuItem';
-import { CandlestickChartIcon, FolderOpen, FolderSync, Monitor, Moon, Sun, SunMoon } from 'lucide-react';
+import { CandlestickChartIcon, CodeIcon, FolderOpen, FolderSync, Key, KeyRoundIcon, Layers, Monitor, Moon, Sun, SunMoon } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogTrigger } from '../shadcn/ui/dialog';
+import PolygonAPISettingsModal from './PolygonAPISettingsModal';
 
 const Sidemenu = () => {
   return (
@@ -35,19 +37,24 @@ export default Sidemenu;
 
 function SettingsDropdown() {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <GearIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuGroup>
-          <TradesFolder />
-          <ThemeToggle />
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Dialog>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <GearIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[10rem]">
+          <DropdownMenuGroup>
+            <TradesFolder />
+            <ThemeToggle />
+            <DropdownMenuSeparator />
+            <PolygonApyKey />
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <PolygonAPISettingsModal />
+    </Dialog>
   );
 }
 
@@ -78,7 +85,7 @@ function ThemeToggle() {
 function TradesFolder() {
   async function ChangeFolder() {
     try {
-      const folderPath = await window.api.app.ChangeTradesFolder();
+      const folderPath = await window.api.settings.ChangeTradesFolder();
       if (!folderPath) return;
 
       toast.success(`Changed trades folder to ${folderPath}`);
@@ -104,5 +111,16 @@ function TradesFolder() {
         </DropdownMenuSubContent>
       </DropdownMenuPortal>
     </DropdownMenuSub>
+  );
+}
+
+function PolygonApyKey() {
+  return (
+    <DialogTrigger asChild>
+      <DropdownMenuItem>
+        Polygon API
+        <Layers className="ml-auto w-4 h-4 text-muted-foreground" />
+      </DropdownMenuItem>
+    </DialogTrigger>
   );
 }

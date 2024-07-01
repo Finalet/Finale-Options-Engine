@@ -5,11 +5,12 @@ import { CallOrPut } from 'yahoo-finance2/dist/esm/src/modules/options';
 import { roundTo } from './Utils';
 import { GetStock } from './Stock';
 import date from 'date-and-time';
+import { DataManager } from '../../DataStorage/DataManager';
 
 let polygon: IRestClient;
 
 export function ConfigurePolygon() {
-  polygon = restClient(process.env.POLYGON_API_KEY, undefined, { pagination: true });
+  polygon = restClient(DataManager.polygonAPIKey(), undefined, { pagination: true });
 }
 
 export async function GetCallOptionChain(stock: string | Stock, expiration: Date | string, strikes?: number[], onlyOTM?: boolean): Promise<OptionChain> {
@@ -66,7 +67,8 @@ export async function GetExistingCallOption(option: Option, underlying: Stock, o
 
   // const polygonResults = await polygon.options.snapshotOptionContract(underlying.ticker, `O:${optionTicker}`);
   // const polygonOption = polygonResults.results;
-  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${option.ticker}?apiKey=${process.env.POLYGON_API_KEY}`, option.ticker);
+  const apiKey = DataManager.polygonAPIKey();
+  const polygonOption = await fetchFromPolygon<any>(`https://api.polygon.io/v3/snapshot/options/${underlying.ticker}/O:${option.ticker}?apiKey=${apiKey}`, option.ticker);
 
   const yahooOptions = await yahooFinance.options(underlying.ticker, { date: polygonOption.details?.expiration_date, formatted: true });
   const yahooOption = yahooOptions.options[0].calls.find((option: CallOrPut) => `O:${option.contractSymbol}` === polygonOption.details?.ticker);

@@ -5,6 +5,7 @@ import { Separator } from '../../shadcn/ui/separator';
 import date from 'date-and-time';
 import { Badge } from '../../shadcn/ui/badge';
 import { isThisYear } from './TradeDetailsPage';
+import { StatusBadge } from '../My trades/MyTradesPage';
 
 export const Trade = ({ trade }: { trade: CallCreditSpreadTrade }) => {
   const calculateReturn = (): number | undefined => {
